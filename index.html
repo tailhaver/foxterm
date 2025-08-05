@@ -5,32 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
     <link rel="stylesheet" href="index.css">
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jqueryui/1.14.1/jquery-ui.min.js"></script> 
+    <link rel="stylesheet" href="ansi.css">
+
+    <script src="js/jquery-3.7.1.min.js"></script>
+    <script src="js/jquery-ui-1.14.1.min.js"></script> 
     <script src="ansi_up.js"></script>
-    <link rel="stylesheet" type="text/css" href="http://code.jquery.com/ui/1.9.2/themes/base/jquery-ui.css"/>
+    <script src="index.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="css/jquery-ui-1.9.2.css"/>
     <link rel="stylesheet" href="ui.css">
 </head>
 <body>
-    <div id="terminal">
+    <!-- <div id="terminal">
         <div class="titlebar">
             <button class="close">x</button>
         </div>
-        <div class="body">abc</div>
-    </div>
-    <div id="dock">
+        <div class="body"></div>
+    </div> -->
+    <div id="dock" style="display: none">
         <div class="dock-object"></div>
         <div class="dock-object"></div>
     </div>
 </body>
-<script>
-    $(() => {
-        $("#terminal").draggable({
-            handle: ".titlebar"
-        });
-        $("#terminal").resizable({
-            handles: "all"
-        });
-    });
-</script>
 </html>
