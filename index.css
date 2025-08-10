@@ -26,10 +26,10 @@ html, body {
 }
 
 body {
-    /* padding: 18px; */
+    padding: 18px;
 }
 
-.terminal {
+/* #terminal > * > .xterm-viewport {
     min-width: 67px;
     position: absolute;
     width: 612px;
@@ -37,15 +37,15 @@ body {
     background-color: #2e2e2e;
     border-radius: 4px;
     border: 2px solid #fca121;
-}
+} */
 
-.terminal .body {
+/* #terminal .body {
     padding: 8px 8px;
     white-space: pre-wrap;
     word-break: break-all;
     max-height: calc(100% - 32px);
     overflow-y: auto;
-}
+} */
 
 .titlebar {
     width: 100%;
