@@ -120,7 +120,7 @@ export class EchoCommand extends Command {
   static description = "Write arguments to stdout.";
   static usage = "echo [args ...]"
   static exec(params, term) {
-    term.write(params);
+    term.write(params.join(" "));
   }
 }
 
