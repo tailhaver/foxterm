@@ -13,7 +13,7 @@ p {
 
 * {
     box-sizing: border-box;
-    font-family: "Caskaydia Mono";
+    font-family: "Caskaydia Mono", 'Consolas', 'Courier New', monospace;
     color: #eaeaea;
 }
 
@@ -46,6 +46,10 @@ body {
     max-height: calc(100% - 32px);
     overflow-y: auto;
 } */
+
+.xterm {
+    padding: 8px;
+}
 
 .titlebar {
     width: 100%;
