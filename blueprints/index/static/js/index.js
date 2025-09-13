@@ -63,5 +63,3 @@ $(window).on("resize", (e) => {
         e.lockToWindow();
     })
 })
-
-// $(window).trigger("resize")

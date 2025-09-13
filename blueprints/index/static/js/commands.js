@@ -309,7 +309,7 @@ export class CdCommand extends Command {
   }
 }
 
-const commands = [ // not const because i cant figure out how to sort it properly at 5am
+const commands = [ 
   HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, 
   FoxCommand, ClearCommand, OpenCommand, LsCommand, CatCommand, CdCommand,
   PwdCommand
