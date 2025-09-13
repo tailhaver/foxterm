@@ -16,12 +16,10 @@ else:
     app = cors(app, allow_origin=re.compile("https://*.yip.cat*"))
 app.config.from_object(f"config.{config_mode}")
 
-### build blueprints
-from blueprints.index import blueprint as index_blueprint
-from blueprints.term import blueprint as term_blueprint
-app.register_blueprint(index_blueprint)
-app.register_blueprint(term_blueprint)
-###end
+from blueprints import index_blueprint, term_blueprint
+for blueprint in [
+        index_blueprint, term_blueprint]:
+    app.register_blueprint(blueprint)
 
 async def static(location=None, filename=None):
     if filename is None: 
