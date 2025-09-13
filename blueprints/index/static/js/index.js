@@ -54,6 +54,7 @@ t2.sendCommand("cat about.txt");
 setTimeout(() => {
     t3.reset();
     t3.write(`foxterm 0.1.0\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${t3.homeText}`);
+    t3.sendCommand("help");
 }, 0)
 
 $(window).on("resize", (e) => {
