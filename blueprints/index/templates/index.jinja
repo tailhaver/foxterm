@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta content="yip.cat" property="og:title">
+    <meta content="hello :3" property="og:description">
+    <meta content="https://yip.cat/" property="og:url">
+    <meta content="{{ static(filename='images/fox.png') }}" property="og:image">
+    <meta content="#E47335" data-react-helmet="true" name="theme-color">
+    <title translate="no">yip yap</title>
+    <link rel="icon" type="image/svg+xml" href="{{ static(filename='svgs/favicon.svg') }}">
+
+    <link rel="stylesheet" href="{{ static('index', filename='css/index.css') }}">
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/jquery-ui@1.14.1/dist/themes/base/jquery-ui.min.css"/>
+    <link rel="stylesheet" href="https://unpkg.com/xterm@5.3.0/css/xterm.css" />
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+    <script src="https://unpkg.com/jquery-ui@1.14.1/dist/jquery-ui.min.js"></script> 
+    <script src="https://unpkg.com/xterm@5.3.0"></script>
+
+    <script src="{{ static('index', filename='js/terminal.js') }}" defer type="module"></script>
+    <script src="{{ static('index', filename='js/index.js') }}" defer type="module"></script>
+</head>
+<body>
+    <script>
+        var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        if (isMobile) {
+            const result = confirm("This website is not optimized for mobile! Would you like to view the legacy version?");
+            if (result) { window.location.href = '/legacy' }
+        };
+    </script>
+</body>
+</html>

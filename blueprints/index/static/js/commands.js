@@ -159,6 +159,151 @@ export class OpenCommand extends Command {
   }
 }
 
-const commands = [
-  HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, FoxCommand, ClearCommand, OpenCommand
-];
+export class PwdCommand extends Command {
+  static name = "pwd";
+  static description = "Print the name of the current working directory.";
+  static aliases = ["cwd"];
+  static exec(params, term) {
+    term.write(
+      term.dir.replace("~/", "/")
+              .replace("~", "/")
+    );
+  }
+}
+
+export class LsCommand extends Command {
+  static name = "ls";
+  static description = "List the files in a given directory (defaults to current directory)";
+  static usage = "ls [DIR]";
+  static exec(params, term) {
+    if (params.length > 1) {
+      term.write(`ls: expected at most one argument\r\nTry 'help ls' for more information.\r\n`);
+      return false
+    }
+    let body = {
+      cwd: term.dir
+    };
+    if (params.length > 0) {
+      body.path = params[0];
+    }
+    $.ajax({
+      url: "ls",
+      data: body,
+      type: 'GET',
+      statusCode: {
+        400: () => {
+          term.write("ls: invalid parameters.\r\nTry 'help ls' for more information.")
+        },
+        404: () => {
+          term.write(`ls: cannot access ${params[0]}: No such file or directory`)
+        }
+      },
+      error: (request, status, error) => {
+        term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+      },
+      success: (data) => {
+        Object.entries(data).forEach((e) => {
+          if (e.length != 2) {
+            term.write(`${e[0]}\r\n`);
+            return
+          }
+          term.write(`${e[1].isDir ? "\x1B[34;42m" : "\x1B[92m"}${e[0]}\x1B[39;49m\r\n`);
+        })
+      }
+    })
+    return
+  }
+}
+
+export class CatCommand extends Command {
+  static name = "cat";
+  static description = "Concatenate a file to stdout.";
+  static usage = "cat [FILE]";
+  static exec(params, term) {
+    if (params.length !== 1) {
+      term.write("cat: expected one argument\r\nTry 'help cat' for more information.");
+      return false
+    }
+    $.ajax({
+      url: 'cat',
+      data: {cwd: term.dir, path: params[0]},
+      type: 'GET',
+      statusCode: {
+        400: () => {
+          term.write("cat: invalid parameters.\r\nTry 'help cat' for more information.");
+        },
+        404: () => {
+          term.write(`cat: ${params[0]}: No such file or directory`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([400, 404].some(s => s === request.status)) { return }
+        term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+      },
+      success: (data) => {
+        data.forEach((e) => {
+          term.write(e.replace("\n", "\r\n"))
+        })
+      }
+    })
+  }
+}
+
+export class CdCommand extends Command {
+  static name = "cd";
+  static description = "Change the shell working directory";
+  static usage = "cd [DIR]";
+  static exec(params, term) {
+    if (params.length !== 1) {
+      term.write("cd: expected one argument\r\nTry 'help cd' for more information.");
+      return false
+    }
+    if (params[0].includes("..")) {
+      let currentPath = []
+      if (params[0].charAt(0) != "/") {
+        currentPath = term.dir.split("/")
+      }
+      const segments = currentPath.concat(params[0].split("/"));
+      var newPath = [];
+      segments.forEach((e) => {
+        if (e == "..") {
+          newPath.pop();
+        } else {
+          newPath.push(e);
+        }
+      })
+      params[0] = newPath.join("/");
+    }
+    $.ajax({
+      url: 'cd',
+      data: {cwd: term.dir, path: params[0]},
+      type: 'GET',
+      statusCode: {
+        400: () => {
+          term.write("cd: invalid parameters.\r\nTry 'help cd' for more information.\r\n");
+        },
+        403: () => {
+          term.write(`-foxterm: cd: ${params[0]}: Not a directory\r\n`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([400, 403].some(s => s === request.status)) { return }
+        term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+      },
+      success: (data) => {
+        if (params[0] == "~") {
+          term.dir = "~";
+        } else {
+          term.dir = `${term.dir}/${params[0]}`;
+        }
+        term.regenHomeText();
+      }
+    })
+  }
+}
+
+const commands = [ // not const because i cant figure out how to sort it properly at 5am
+  HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, 
+  FoxCommand, ClearCommand, OpenCommand, LsCommand, CatCommand, CdCommand,
+  PwdCommand
+].sort((a, b) => {return a.name.localeCompare(b.name)});

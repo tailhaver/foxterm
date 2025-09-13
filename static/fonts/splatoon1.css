@@ -1,0 +1,9 @@
+@font-face {
+    font-family: 'Splatoon1';
+    src: url('Splatoon1.woff2') format('woff2'),
+        url('Splatoon1.woff') format('woff');
+    font-weight: 800;
+    font-style: normal;
+    font-display: swap;
+}
+

@@ -1,0 +1,96 @@
+h1, p {
+    padding: 0;
+    margin: 0;
+}
+
+h1, a {
+    width: fit-content;
+}
+
+h1 {
+    font-size: min(8vw, 3rem);
+    width: fit-content;
+}
+
+html, body {
+    padding: 0;
+    margin: 0;
+    background-color: black;
+    color: white;
+    display: flex;
+    font-family: clangen;
+    justify-content: center;
+    align-items: center;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    height: 100%;
+}
+
+main {
+    position: absolute;
+    height: 155px;
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+}
+
+@media (max-width: 850px) {
+    main {
+        width: min(90vw, 600px);
+    }    
+} 
+@media (min-width: 850px) {
+    main {
+        width: min(700px, 75vw);
+    }
+}
+
+#links {
+    white-space: normal;
+    /* height: min(3.666667vw, 36px); */
+    display: flex;
+    justify-content: start;
+    flex-direction: column;
+}
+
+.logo {
+    max-width: min(32px, 0.9325em);
+    max-height: min(32px, 0.9325em);
+    width: 32px;
+    height: 32px;     
+}
+
+.logo.invert {
+    filter: brightness(0) invert(1);
+}
+
+a {
+    display: flex;
+    width: fit-content;
+    text-decoration: none;
+    color: #E47335;
+    margin-bottom: 8px;
+    margin-right: 0.233125em;
+    /* font-size: min(6vw, 2rem); */
+    font-size: min(5.5vw, 2.25rem);
+}
+
+a:hover {
+    color: #FFA931;
+}
+
+a:hover > .logo.invert {
+    filter: brightness(0) invert(1) brightness(0.6);
+}
+
+a:hover > .logo {
+    filter: brightness(0.6);
+}
+
+a img {
+    margin-right: 8px;
+}
+
+.orange {
+    color: #E47335
+}

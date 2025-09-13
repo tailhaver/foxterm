@@ -6,7 +6,11 @@
 import { 
   Command, HelpCommand, TwitterCommand, GitHubCommand, 
   EchoCommand, WhoAmICommand, FoxCommand, ClearCommand, 
-  OpenCommand 
+  OpenCommand, 
+  LsCommand,
+  CatCommand,
+  CdCommand,
+  PwdCommand
 } from "./commands.js"
 
 const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
@@ -76,7 +80,11 @@ export default class FTerminal {
       "whoami": WhoAmICommand,
       "fox": FoxCommand,
       "clear": ClearCommand,
-      "open": OpenCommand
+      "open": OpenCommand,
+      "ls": LsCommand,
+      "cat": CatCommand,
+      "cd": CdCommand,
+      "pwd": PwdCommand
     };
 
     this.aliases = [];
@@ -148,6 +156,17 @@ export default class FTerminal {
         break
       case '\x1b[15~': // f5
         window.location.reload();
+        break
+      case '\x1b[15;5~': // ctrl f5
+        window.location.reload(true);
+        break
+      case '\x03': // ctrl c
+        this.write("^C\r\n");
+        this.write(this.homeText);
+        this.currentLine = "";
+        this.#updateLineLength();
+        this.cursorX = this.homeLength;
+        break
       default:
         this.cursorX += 1;
         this.currentLine += e;
@@ -178,7 +197,7 @@ export default class FTerminal {
         selectedCommand(params);
       }
     }
-    if (!["clear", "cls", "open"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
+    if (!["clear", "cls", "open", "ls", "cd"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
       this.write("\r\n");
     }
     this.write(this.homeText);
@@ -193,7 +212,7 @@ export default class FTerminal {
     this.term.reset();
   }
   #resizeTerminal() {
-    this.term.resize(Math.floor($(this.self).innerWidth() / 9) - 2, Math.floor(($(this.self).innerHeight() - $($(this.self).children()[0]).innerHeight() - 16) / 17));
+    this.term.resize(Math.floor($(this.self).innerWidth() / 9) - 4, Math.floor(($(this.self).innerHeight() - $($(this.self).children()[0]).innerHeight() - 16) / 17));
   }
   handleWindowResize(pos = [null, null], size = [null, null]) {
     // more black magic fuckery someone put me down
@@ -222,8 +241,11 @@ export default class FTerminal {
   }
   sendCommand(input) { // public function for literally One Use. Yay.
     this.write(input);
-    this.currentLine = input;
-    this.#handleData("\r"); // dont do this please
+    this.write("\r\n");
+    this.#handleCommand(input);
+  }
+  regenHomeText() {
+    this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;
   }
 }
 

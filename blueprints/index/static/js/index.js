@@ -5,6 +5,10 @@
 
 import FTerminal from "./terminal.js"
 
+$.ajaxSetup({
+    async: false
+})
+
 const [width, height] = [$(window).width(), $(window).height()];
 
 let positions = [];
@@ -27,7 +31,7 @@ if (width >= 1280) {
         [stdwidth, stdheight], [stdwidth, height - top * 2 - stdheight - 8], [stdwidth * 2, height - top * 2]
     ];
 } else if (width >= 796) {
-    stdwidth = 342;
+    stdwidth = 360;
     stdheight = 421;
     left = 54;
     top = 54;
@@ -44,10 +48,20 @@ const t2 = new FTerminal(positions[1], sizes[1]);
 const t3 = new FTerminal(positions[2], sizes[2]);
 
 t1.sendCommand("fox");
+t2.sendCommand("cat aside.txt");
+t2.sendCommand("cat about.txt");
+// hacky fix to display text
+setTimeout(() => {
+    t3.reset();
+    t3.write(`foxterm 0.1.0\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${t3.homeText}`);
+}, 0)
 
 $(window).on("resize", (e) => {
+    console.log("a")
     if (e.target !== window) { return }
-    [t3].forEach((e) => {
+    [t1, t2, t3].forEach((e) => {
         e.lockToWindow();
     })
 })
+
+// $(window).trigger("resize")

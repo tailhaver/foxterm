@@ -1,20 +1,14 @@
 @font-face {
     font-family: "Caskaydia Mono";
-    src: url('../fonts/CaskaydiaMonoNerdFont-Regular.ttf');
+    src: url('../fonts/CaskaydiaMonoNF-Subset.woff2');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
 }
 
-p {
-    font-size: 12px;
-    line-height: 1.2;
-}
-
 * {
     box-sizing: border-box;
     font-family: "Caskaydia Mono", 'Consolas', 'Courier New', monospace;
-    color: #eaeaea;
     --border: 1px solid #333340;
 }
 
@@ -58,6 +52,10 @@ body {
 .xterm-screen {
     height: 100% !important;
     min-height: 100% !important;
+}
+
+.xterm-rows > div {
+    overflow: visible !important;
 }
 
 .ui-resizable {
