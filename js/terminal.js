@@ -9,7 +9,7 @@ import {
   OpenCommand 
 } from "./commands.js"
 
-const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
+const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 export default class FTerminal {
   constructor(pos = [24, 24], size = [738, 457]) {
     this.term = new Terminal({
@@ -37,7 +37,7 @@ export default class FTerminal {
     });
     this.self = $("<div>", {"class": "terminal"}).append($("<div>", {"class": "titlebar"}).append($("<button>", {"class": "close", "text": "x"}))).append($("<div>", {"class": "body"})).appendTo($("body"));
     this.handleWindowResize(pos, size);
-    this.body = $(this.self).children()[1]
+    this.body = $(this.self).children()[1];
     $(this.self).draggable({
       handle: ".titlebar",
       scroll: false,
@@ -56,7 +56,7 @@ export default class FTerminal {
     this.currentLine = "";
     this.lineHistory = [];
     this.currentLineInHistory = 0; // amazing names taggie
-    this.user = "guest"
+    this.user = "guest";
     this.dir = "~";
     this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;
     this.homeLength = this.homeText.replace(re, "").length + 1;
@@ -77,10 +77,10 @@ export default class FTerminal {
       "fox": FoxCommand,
       "clear": ClearCommand,
       "open": OpenCommand
-    }
+    };
 
-    this.aliases = []
-    Object.values(this.commands).forEach((e) => {e.aliases.length > 0 ? this.aliases.push([e.name, e.aliases]) : null})
+    this.aliases = [];
+    Object.values(this.commands).forEach((e) => {e.aliases.length > 0 ? this.aliases.push([e.name, e.aliases]) : null});
 
     // black magic fuckery
     var _ = {}; 
@@ -113,7 +113,7 @@ export default class FTerminal {
         this.write(`\x1b[M`);
         this.write(this.homeText);
         if (this.lineHistory.length > this.currentLineInHistory) {
-          this.currentLineInHistory += 1
+          this.currentLineInHistory += 1;
           this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
           this.#updateLineLength(); // force call because i need to set the x val NOWW
           this.cursorX = this.lineLength;
@@ -137,13 +137,13 @@ export default class FTerminal {
       case '\x1b[C': // forward
         if (this.cursorX < this.lineLength - 1) {
           this.cursorX += 1;
-          this.write('\x1b[C')
+          this.write('\x1b[C');
         }
         break
       case '\x1b[D': // back
         if (this.cursorX > this.homeLength) {
           this.cursorX -= 1;
-          this.write('\x1b[D')
+          this.write('\x1b[D');
         }
         break
       case '\x1b[15~': // f5
@@ -169,7 +169,7 @@ export default class FTerminal {
     } else if (command in this.aliases) {
       selectedCommand = this.commands[this.aliases[command]] // what? the fuck?
     } else {
-      this.write(`-foxterm: ${command}: command not found`)
+      this.write(`-foxterm: ${command}: command not found`);
     }
     if (selectedCommand != null) {
       if (selectedCommand.prototype instanceof Command) {
@@ -193,7 +193,7 @@ export default class FTerminal {
     this.term.reset();
   }
   #resizeTerminal() {
-    this.term.resize(Math.floor($(this.self).innerWidth() / 9) - 2, Math.floor(($(this.self).innerHeight() - $($(this.self).children()[0]).innerHeight() - 16) / 17))
+    this.term.resize(Math.floor($(this.self).innerWidth() / 9) - 2, Math.floor(($(this.self).innerHeight() - $($(this.self).children()[0]).innerHeight() - 16) / 17));
   }
   handleWindowResize(pos = [null, null], size = [null, null]) {
     // more black magic fuckery someone put me down
@@ -202,7 +202,7 @@ export default class FTerminal {
         Object.entries({"left": pos[0], "top": pos[1], "width": size[0], "height": size[1]})
               .filter((e) => {return e[1]})
       )
-    )
+    );
     this.#resizeTerminal();
   }
   lockToWindow() {
@@ -215,9 +215,9 @@ export default class FTerminal {
       this.self.css("left", windowWidth - 54);
     }
     if (ypos < 0) {
-      this.self.css("top", 0)
+      this.self.css("top", 0);
     } else if (ypos > windowHeight - 54) {
-      this.self.css("top", windowHeight - 54)
+      this.self.css("top", windowHeight - 54);
     }
   }
   sendCommand(input) { // public function for literally One Use. Yay.
@@ -232,7 +232,7 @@ $(() => {
   $("body").on("click tap", ".close", (e) => {
     $(e.target).parent().parent().remove();
     if ($(".terminal.ui-draggable").length == 0) {
-      setTimeout(() => {new FTerminal();}, 500)
+      setTimeout(() => {new FTerminal();}, 500);
     }
   })
   $("body").on("mousedown", ".terminal.ui-draggable", (e) => {
@@ -241,12 +241,12 @@ $(() => {
       return
     }
     $('.terminal[style*=z-index]').each((i, element) => {
-      const index = $(element).css("z-index") - 1
+      const index = $(element).css("z-index") - 1;
       if (index > highestIndex) {
         highestIndex = index;
       }
       if (index === 0) {
-        $(element).css("z-index", "auto")
+        $(element).css("z-index", "auto");
       } else {
         $(element).css("z-index", index);
       }

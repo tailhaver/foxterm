@@ -16,7 +16,7 @@ export class Command {
 export class HelpCommand extends Command {
   static name = "help";
   static description = "Display information about builtin commands.";
-  static usage = "help [command]"
+  static usage = "help [command]";
   static help = "\tArguments:\r\n\t  COMMAND\tCommand to view the help string for";
   static exec(params, term) {
     if (params.length == 0) {
@@ -30,14 +30,14 @@ export class HelpCommand extends Command {
       command = term.commands[term.aliases[params[0]]];
     }
     if (command == null) {
-      term.write(`help: expected 1 argument\r\nTry 'help help' for more information.`)
+      term.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
       return
     }
     if (command.usage.length == 0 && command.description.length == 0 && command.help.length == 0) {
-      term.write(`-foxterm: help: no topics match '${params[0]}'.`)
+      term.write(`-foxterm: help: no topics match '${params[0]}'.`);
       return
     }
-    term.write(`${command.name}: ${command.usage}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`)
+    term.write(`${command.name}: ${command.usage}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
   }
 }
 
@@ -55,7 +55,7 @@ export class GitHubCommand extends Command {
   static name = "github";
   static description = "Display a link to my GitHub profile.";
   static aliases = ["git", "gh"];
-  static usage = "github"
+  static usage = "github";
   static exec(params, term) {
     term.write("my github: \x1b]8;;http://github.com/tailhaver\x1b\\@tailhaver\x1b]8;;\x1b");
   }
@@ -64,7 +64,7 @@ export class GitHubCommand extends Command {
 export class EchoCommand extends Command {
   static name = "echo";
   static description = "Write arguments to stdout.";
-  static usage = "echo [args ...]"
+  static usage = "echo [args ...]";
   static exec(params, term) {
     term.write(params.join(" "));
   }
@@ -81,8 +81,8 @@ export class WhoAmICommand extends Command {
 // i should submit this when seeking a diagnosis for being Clinically Insane
 export class FoxCommand extends Command {
   static name = "fox";
-  static usage = "fox [-g, --grayscale]"
-  static help = "\tOptions:\r\n\t  -g, --grayscale"
+  static usage = "fox [-g, --grayscale]";
+  static help = "\tOptions:\r\n\t  -g, --grayscale";
   static exec(params, term) {
     if (params.some(s => ["-g", "--grayscale"].includes(s))) {
       term.write(`[0m[38;5;231m        [0m[38;5;232m,[0m[38;5;245mx[0m[38;5;241m<-[0m[38;5;249mv[0m[38;5;231m          [0m[38;5;241m1[0m[38;5;245m)[0m[38;5;241m<[[0m[38;5;245mf[0m[38;5;231m        [0m \r
@@ -144,11 +144,11 @@ export class OpenCommand extends Command {
   static help = "\tArguments:\r\n\t  PAGE\tOne of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.";
   static exec(params, term) {
     if (params.length != 1) {
-      term.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`)
+      term.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
       return false
     }
     if (!params.some(s => ["git", "github", "gh", "twitter", "twt", "x"].includes(s))) {
-      term.write(`open: invalid option ${params}\r\nTry 'help open' for more information\r\n`)
+      term.write(`open: invalid option ${params}\r\nTry 'help open' for more information\r\n`);
       return false
     }
     if (params.some(s => ["git", "github", "gh"].includes(s))) {
@@ -161,4 +161,4 @@ export class OpenCommand extends Command {
 
 const commands = [
   HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, FoxCommand, ClearCommand, OpenCommand
-]
+];

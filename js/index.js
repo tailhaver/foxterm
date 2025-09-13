@@ -1,3 +1,8 @@
+// most evil file for containing my most evil and twisted command processing
+// dont ask what any of this is. ive no clue either
+// taggie pyle, 2025
+// https://github.com/tailhaver
+
 import FTerminal from "./terminal.js"
 
 const [width, height] = [$(window).width(), $(window).height()];
@@ -24,8 +29,8 @@ if (width >= 1280) {
 } else if (width >= 796) {
     stdwidth = 342;
     stdheight = 421;
-    left = 54
-    top = 54        
+    left = 54;
+    top = 54;
     positions = [
         [left, top], [left, top + stdheight + 8], [left + stdwidth + 8, top]
     ];
@@ -38,7 +43,7 @@ const t1 = new FTerminal(positions[0], sizes[0]);
 const t2 = new FTerminal(positions[1], sizes[1]);
 const t3 = new FTerminal(positions[2], sizes[2]);
 
-t1.sendCommand("fox")
+t1.sendCommand("fox");
 
 $(window).on("resize", (e) => {
     if (e.target !== window) { return }
