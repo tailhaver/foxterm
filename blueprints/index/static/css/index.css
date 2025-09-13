@@ -9,6 +9,7 @@
 * {
     box-sizing: border-box;
     font-family: "Caskaydia Mono", 'Consolas', 'Courier New', monospace;
+    color: #eaeaea;
     --border: 1px solid #333340;
 }
 
