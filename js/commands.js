@@ -1,3 +1,6 @@
+// less evil file for containing my less evil command classes
+// taggie pyle, 2025
+// https://github.com/tailhaver
 
 export class Command {
   static name = "";
@@ -27,7 +30,8 @@ export class HelpCommand extends Command {
       command = term.commands[term.aliases[params[0]]];
     }
     if (command == null) {
-      return // TEMP
+      term.write(`help: expected 1 argument\r\nTry 'help help' for more information.`)
+      return
     }
     if (command.usage.length == 0 && command.description.length == 0 && command.help.length == 0) {
       term.write(`-foxterm: help: no topics match '${params[0]}'.`)
@@ -154,7 +158,6 @@ export class OpenCommand extends Command {
     window.open("https://twitter.com/transfoxes", "_blank");
   }
 }
-
 
 const commands = [
   HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, FoxCommand, ClearCommand, OpenCommand

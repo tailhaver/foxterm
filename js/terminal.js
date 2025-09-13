@@ -110,7 +110,6 @@ export default class FTerminal {
         }
         break;
       case '\x1b[A': // up
-        // this.write(`\x1b[${this.homeLength + this.currentLine.length - 1}G`);
         this.write(`\x1b[M`);
         this.write(this.homeText);
         if (this.lineHistory.length > this.currentLineInHistory) {
@@ -159,7 +158,7 @@ export default class FTerminal {
   #handleCommand(input) {
     const args = input.split(' ');
     const command = args[0];
-    const params = args.slice(1);
+    const params = args.slice(1).filter(e => e);
     let selectedCommand = null;
     if (command.length == 0) {
       this.write(this.homeText);
@@ -225,7 +224,6 @@ export default class FTerminal {
     this.write(input);
     this.currentLine = input;
     this.#handleData("\r"); // dont do this please
-    console.log(this.lineHistory)
   }
 }
 

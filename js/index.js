@@ -42,10 +42,6 @@ t1.sendCommand("fox")
 
 $(window).on("resize", (e) => {
     if (e.target !== window) { return }
-    // [positions, sizes] = handleResize();
-    // [t1, t2, t3].forEach((e, i) => {
-    //     e.handleResize(positions[i], sizes[i]);
-    // })
     [t3].forEach((e) => {
         e.lockToWindow();
     })
