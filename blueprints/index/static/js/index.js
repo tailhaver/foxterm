@@ -57,7 +57,6 @@ setTimeout(() => {
 }, 0)
 
 $(window).on("resize", (e) => {
-    console.log("a")
     if (e.target !== window) { return }
     [t1, t2, t3].forEach((e) => {
         e.lockToWindow();
