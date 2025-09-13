@@ -20,6 +20,8 @@ async def ls():
     searchpath = ""
     if path is None:
         searchpath = f"{cwd}"
+    elif ".." in path or ".." in cwd:
+        return "", 403
     elif not isinstance(path, str):
         return "", 400
     elif path[0] == "/":
@@ -28,6 +30,7 @@ async def ls():
         searchpath = f"{cwd}/{path}"
     if not os.path.exists(searchpath):
         return "", 404
+    logger.info(os.path.abspath(searchpath))
     files = os.listdir(searchpath)
     return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}    
     # if isinstance(path, str): 
@@ -43,6 +46,8 @@ async def cat():
     path = request.args.get("path")
     if cwd is None or path is None:
         return "", 400
+    if ".." in path or ".." in cwd:
+        return "", 403
     home = "static/filesystem"
     cwd = cwd.replace("~", "").rstrip("/")
     filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
@@ -59,7 +64,9 @@ async def cd():
     path = request.args.get("path", "")
     if cwd is None or path is None:
         return "", 400
-    if path == "~":
+    if len(path) == 0:
+        return "", 400
+    elif path == "~":
         filepath = f"{home}"
     elif path[0] == "/":
         filepath = f"{home}{path}"

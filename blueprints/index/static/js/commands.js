@@ -192,13 +192,17 @@ export class LsCommand extends Command {
       type: 'GET',
       statusCode: {
         400: () => {
-          term.write("ls: invalid parameters.\r\nTry 'help ls' for more information.")
+          term.write("ls: invalid parameters.\r\nTry 'help ls' for more information.\r\n")
+        },
+        403: () => {
+          term.write(`-foxterm: ls: accessing parent directories is currently disabled for security reasons.\r\n`);
         },
         404: () => {
-          term.write(`ls: cannot access ${params[0]}: No such file or directory`)
+          term.write(`ls: cannot access ${params[0]}: No such file or directory\r\n`)
         }
       },
       error: (request, status, error) => {
+        if ([400, 403, 404].some(s => s === request.status)) { return }
         term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
@@ -232,13 +236,16 @@ export class CatCommand extends Command {
         400: () => {
           term.write("cat: invalid parameters.\r\nTry 'help cat' for more information.");
         },
+        403: () => {
+          term.write(`-foxterm: cat: accessing parent directories is currently disabled for security reasons.`);
+        },
         404: () => {
           term.write(`cat: ${params[0]}: No such file or directory`);
         }
       },
       error: (request, status, error) => {
-        if ([400, 404].some(s => s === request.status)) { return }
-        term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+        if ([400, 403, 404].some(s => s === request.status)) { return }
+        term.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
       },
       success: (data) => {
         data.forEach((e) => {
