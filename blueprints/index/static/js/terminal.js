@@ -197,7 +197,7 @@ export default class FTerminal {
         selectedCommand(params);
       }
     }
-    if (!["clear", "cls", "open", "ls", "cd"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
+    if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
       this.write("\r\n");
     }
     this.write(this.homeText);

@@ -32,7 +32,7 @@ if (width >= 1280) {
     ];
 } else if (width >= 796) {
     stdwidth = 360;
-    stdheight = 421;
+    stdheight = 404;
     left = 54;
     top = 54;
     positions = [
