@@ -9,33 +9,49 @@ import {
   OpenCommand 
 } from "./commands.js"
 
-const term = new Terminal({
-  cursorBlink: "block",
-  theme: {
-    black: "#2E2E2E",
-    red: "#FC6D26",
-    green: "#3EB383",
-    yellow: "#FCA121",
-    blue: "#DB3B21",
-    magenta: "#380D75",
-    cyan: "#6E49CB",
-    white: "#FFF",
-    brightBlack: "#464646",
-    brightRed: "#FF6517",
-    brightGreen: "#53EAA8",
-    brightYellow: "#FCA013",
-    brightBlue: "#DB501F",
-    brightMagenta: "#441090",
-    brightCyan: "#7D53E7",
-    brightWhite: "#FFF",
-    background: "#2e2e2e",
-    cursor: "#7f7f7f"
-  }
-});
-
 const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g
 export default class FTerminal {
-  constructor() {
+  constructor(pos = [24, 24], size = [738, 457]) {
+    this.term = new Terminal({
+      cursorBlink: "block",
+      theme: {
+        black: "#2E2E2E",
+        red: "#FC6D26",
+        green: "#3EB383",
+        yellow: "#FCA121",
+        blue: "#DB3B21",
+        magenta: "#380D75",
+        cyan: "#6E49CB",
+        white: "#FFF",
+        brightBlack: "#464646",
+        brightRed: "#FF6517",
+        brightGreen: "#53EAA8",
+        brightYellow: "#FCA013",
+        brightBlue: "#DB501F",
+        brightMagenta: "#441090",
+        brightCyan: "#7D53E7",
+        brightWhite: "#FFF",
+        background: "#2e2e2e",
+        cursor: "#7f7f7f"
+      }
+    });
+    this.self = $("<div>", {"class": "terminal"}).append($("<div>", {"class": "titlebar"}).append($("<button>", {"class": "close", "text": "x"}))).append($("<div>", {"class": "body"})).appendTo($("body"));
+    this.handleWindowResize(pos, size);
+    this.body = $(this.self).children()[1]
+    $(this.self).draggable({
+      handle: ".titlebar",
+      scroll: false,
+      stop: (e, ui) => {
+        this.lockToWindow();
+      }
+    });
+    $(this.self).resizable({
+      handles: "all",
+      containment: "parent",
+      resize: (e, ui) => {
+        this.#resizeTerminal()
+      }
+    });
     this.cursorX = 0;
     this.currentLine = "";
     this.lineHistory = [];
@@ -46,11 +62,10 @@ export default class FTerminal {
     this.homeLength = this.homeText.replace(re, "").length + 1;
     this.lineLength = this.homeLength + this.currentLine.length;
     this.#initCommands();
-    term.open(document.getElementById('terminal'));
+    this.term.open(this.body);
     this.write(this.homeText);
     this.cursorX = this.lineLength;
-
-    term.onData(e => {this.#handleData(e)})
+    this.term.onData(e => {this.#handleData(e)})
   }
   #initCommands() {
     this.commands = {
@@ -72,7 +87,6 @@ export default class FTerminal {
     this.aliases.forEach((K) => {K[1].forEach((e) => {_[e] = K[0]})}); 
     this.aliases = _; 
     _ = null;
-    console.log(this.aliases)
   }
   #handleData(e) {
     switch (e) {
@@ -174,9 +188,71 @@ export default class FTerminal {
     this.lineLength = this.homeLength + this.currentLine.length;
   }
   write(dat) {
-    term.write(dat);
+    this.term.write(dat);
   }
   reset() {
-    term.reset();
+    this.term.reset();
+  }
+  #resizeTerminal() {
+    this.term.resize(Math.floor($(this.self).innerWidth() / 9) - 2, Math.floor(($(this.self).innerHeight() - $($(this.self).children()[0]).innerHeight() - 16) / 17))
+  }
+  handleWindowResize(pos = [null, null], size = [null, null]) {
+    // more black magic fuckery someone put me down
+    this.self.css(
+      Object.fromEntries(
+        Object.entries({"left": pos[0], "top": pos[1], "width": size[0], "height": size[1]})
+              .filter((e) => {return e[1]})
+      )
+    )
+    this.#resizeTerminal();
+  }
+  lockToWindow() {
+    const [windowWidth, windowHeight] = [$(window).width(), $(window).height()];
+    const [ypos, xpos] = Object.values(this.self.offset());
+    const [width, height] = [this.self.width(), this.self.height()];
+    if (xpos + width < 54) {
+      this.self.css("left", 0 - width + 54);
+    } else if (xpos > windowWidth - 54) {
+      this.self.css("left", windowWidth - 54);
+    }
+    if (ypos < 0) {
+      this.self.css("top", 0)
+    } else if (ypos > windowHeight - 54) {
+      this.self.css("top", windowHeight - 54)
+    }
+  }
+  sendCommand(input) { // public function for literally One Use. Yay.
+    this.write(input);
+    this.currentLine = input;
+    this.#handleData("\r"); // dont do this please
+    console.log(this.lineHistory)
   }
 }
+
+$(() => {
+  var highestIndex = 5;
+  $("body").on("click tap", ".close", (e) => {
+    $(e.target).parent().parent().remove();
+    if ($(".terminal.ui-draggable").length == 0) {
+      setTimeout(() => {new FTerminal();}, 500)
+    }
+  })
+  $("body").on("mousedown", ".terminal.ui-draggable", (e) => {
+    const $this = $(e.target).closest('.terminal.ui-draggable');
+    if ($this.css("z-index") == highestIndex + 1) {
+      return
+    }
+    $('.terminal[style*=z-index]').each((i, element) => {
+      const index = $(element).css("z-index") - 1
+      if (index > highestIndex) {
+        highestIndex = index;
+      }
+      if (index === 0) {
+        $(element).css("z-index", "auto")
+      } else {
+        $(element).css("z-index", index);
+      }
+    })
+    $this.css("z-index", highestIndex + 1);
+  })
+})

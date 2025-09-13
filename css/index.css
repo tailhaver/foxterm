@@ -1,6 +1,6 @@
 @font-face {
     font-family: "Caskaydia Mono";
-    src: url('CaskaydiaMonoNerdFont-Regular.ttf');
+    src: url('../fonts/CaskaydiaMonoNerdFont-Regular.ttf');
     font-weight: normal;
     font-style: normal;
     font-display: swap;
@@ -15,6 +15,7 @@ p {
     box-sizing: border-box;
     font-family: "Caskaydia Mono", 'Consolas', 'Courier New', monospace;
     color: #eaeaea;
+    --border: 1px solid #333340;
 }
 
 html, body {
@@ -29,26 +30,38 @@ body {
     padding: 18px;
 }
 
-/* #terminal > * > .xterm-viewport {
-    min-width: 67px;
-    position: absolute;
-    width: 612px;
-    height: 644px;
-    background-color: #2e2e2e;
-    border-radius: 4px;
-    border: 2px solid #fca121;
-} */
+.terminal.ui-draggable {
+    display: flex;
+    flex-flow: column;
+}
 
-/* #terminal .body {
-    padding: 8px 8px;
-    white-space: pre-wrap;
-    word-break: break-all;
-    max-height: calc(100% - 32px);
-    overflow-y: auto;
-} */
+.ui-resizable-handle {
+    filter: opacity(0);
+}
+
+.terminal .body {
+    border-left: var(--border);
+    border-right: var(--border);
+    border-bottom: var(--border);
+}
+
+.terminal .body, .xterm-screen, .xterm-viewport {
+    flex: 1 1 auto;
+}
 
 .xterm {
     padding: 8px;
+    box-sizing: border-box;
+    height: 100%;
+}
+
+.xterm-screen {
+    height: 100% !important;
+    min-height: 100% !important;
+}
+
+.ui-resizable {
+    position: absolute !important;
 }
 
 .titlebar {
@@ -58,6 +71,10 @@ body {
     border-radius: 4px 4px 0 0;
     display: flex;
     justify-content: right;
+    flex: 0 0 32px;
+    border-top: var(--border);
+    border-left: var(--border);
+    border-right: var(--border);
 }
 
 .titlebar > button.close {
