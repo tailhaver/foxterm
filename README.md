@@ -18,6 +18,7 @@ uv sync
 
 2. Configure environment
 - Add any existing environment variables to .env, such as your secret key
+- Configure UV to use your .env file by setting the `UV_ENV_FILE` variable to ".env"
 
 3. Start the program
 ```shell
