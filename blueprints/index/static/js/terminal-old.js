@@ -3,8 +3,15 @@
 // https://github.com/tailhaver
 // please dont reuse this code 1. its bad 2. ill cry 3. do you really want to make a fox cry
 
-import {commands} from "./commands.js"
-import {CommandError} from "./errors.js"
+import { 
+  Command, HelpCommand, TwitterCommand, GitHubCommand, 
+  EchoCommand, WhoAmICommand, FoxCommand, ClearCommand, 
+  OpenCommand, 
+  LsCommand,
+  CatCommand,
+  CdCommand,
+  PwdCommand
+} from "./commands-old.js"
 
 const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 export default class FTerminal {
@@ -30,8 +37,7 @@ export default class FTerminal {
         brightWhite: "#FFF",
         background: "#2e2e2e",
         cursor: "#7f7f7f"
-      },
-      convertEol: true
+      }
     });
     this.self = $("<div>", {"class": "terminal"}).append($("<div>", {"class": "titlebar"}).append($("<button>", {"class": "close", "text": "x"}))).append($("<div>", {"class": "body"})).appendTo($("body"));
     this.handleWindowResize(pos, size);
@@ -47,7 +53,7 @@ export default class FTerminal {
       handles: "all",
       containment: "parent",
       resize: (e, ui) => {
-        this.#resizeTerminal();
+        this.#resizeTerminal()
       }
     });
     this.cursorX = 0;
@@ -63,17 +69,23 @@ export default class FTerminal {
     this.term.open(this.body);
     this.write(this.homeText);
     this.cursorX = this.lineLength;
-    this.term.onData(e => {this.#handleData(e)});
-
-    this.lock = false;
-    this.currentCommand = null;
-    this.commandQueue = []
-  };
-
+    this.term.onData(e => {this.#handleData(e)})
+  }
   #initCommands() {
-    this.commands = Object.fromEntries(
-      commands.map((e) => {return [e.name, e]}) // automatically create command list from commands.js
-    );
+    this.commands = {
+      "help": HelpCommand,
+      "twitter": TwitterCommand,
+      "github": GitHubCommand,
+      "echo": EchoCommand,
+      "whoami": WhoAmICommand,
+      "fox": FoxCommand,
+      "clear": ClearCommand,
+      "open": OpenCommand,
+      "ls": LsCommand,
+      "cat": CatCommand,
+      "cd": CdCommand,
+      "pwd": PwdCommand
+    };
 
     this.aliases = [];
     Object.values(this.commands).forEach((e) => {e.aliases.length > 0 ? this.aliases.push([e.name, e.aliases]) : null});
@@ -87,75 +99,71 @@ export default class FTerminal {
   #handleData(e) {
     switch (e) {
       case '\r':
-        if (this.lineHistory.includes(this.currentLine)
-            & this.currentLineInHistory != 0) {
-          this.lineHistory.splice(this.currentLineInHistory - 1);
-          }
+        // handling for the messed up previous line handling
+        if (this.lineHistory.includes(this.currentLine) && this.currentLineInHistory != 0) {
+          this.lineHistory.splice(this.currentLineInHistory - 1)
+        }
         this.currentLineInHistory = 0;
         this.lineHistory.push(this.currentLine);
-        this.write("\n");
+        this.write("\r\n");
         this.#handleCommand(this.currentLine);
         this.currentLine = '';
         this.cursorX = this.homeLength;
-        break
+        break;
       case '\x7F': // backspace
         if (this.cursorX > this.homeLength) {
           this.cursorX -= 1;
           this.currentLine = this.currentLine.slice(0, -1);
           this.write("\b \b");
-        };
-        break
+        }
+        break;
       case '\x1b[A': // up
+        this.write(`\x1b[M`);
+        this.write(this.homeText);
         if (this.lineHistory.length > this.currentLineInHistory) {
-          this.write("\x1b[M");
-          this.write(this.homeText);
           this.currentLineInHistory += 1;
           this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
           this.#updateLineLength(); // force call because i need to set the x val NOWW
           this.cursorX = this.lineLength;
-          this.write(this.currentLine);
         }
+        this.write(this.currentLine);
         break
       case '\x1b[B': // down
         if (this.currentLineInHistory == 0) { break }
         this.write(`\x1b[M`);
         this.write(this.homeText);
-        this.currentLineInHistory -= 1;
+        this.currentLineInHistory -= 1
         if (this.currentLineInHistory != 0) {
           this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
         } else {
           this.currentLine = "";
-        };
+        }
         this.#updateLineLength(); // force call because i need to set the x val NOWW
         this.cursorX = this.lineLength;
         this.write(this.currentLine);
-        break
+        break;
       case '\x1b[C': // forward
         if (this.cursorX < this.lineLength - 1) {
           this.cursorX += 1;
           this.write('\x1b[C');
-        };
+        }
         break
       case '\x1b[D': // back
         if (this.cursorX > this.homeLength) {
           this.cursorX -= 1;
           this.write('\x1b[D');
-        };
+        }
         break
       case '\x1b[15~': // f5
         window.location.reload();
         break
       case '\x1b[15;5~': // ctrl f5
-        window.location.reload(true); // only works on firefox i think
+        window.location.reload(true);
         break
-      case '\x03': // ctrl-c / sigint
-        if (this.currentCommand !== null) {
-          this.currentCommand.kill();
-          this.currentCommand = null;
-        }
-        this.write('^C\n');
+      case '\x03': // ctrl c
+        this.write("^C\r\n");
         this.write(this.homeText);
-        this.currentLine = '';
+        this.currentLine = "";
         this.#updateLineLength();
         this.cursorX = this.homeLength;
         break
@@ -164,30 +172,9 @@ export default class FTerminal {
         this.currentLine += e;
         this.write(e);
     }
-    this.#updateLineLength();
-  }
-  processQueue() {
-    let [selectedCommand, command, params] = [null, null, null];
-    const fn = () => {
-      if (this.commandQueue == null || this.commandQueue.length == 0) {
-        return;
-      }
-      [selectedCommand, command, params] = this.commandQueue.shift();
-      this.write(`${command} ${params.join(" ")}\r\n`);
-      this.#runCommand(selectedCommand, command, params);
-    };
-    var queueInterval = setInterval(() => {
-      if (this.commandQueue.length == 0) { clearInterval(queueInterval) }
-      if ( this.lock ) { return }
-      fn();
-    }, 50)
+    this.#updateLineLength()
   }
   #handleCommand(input) {
-    const [selectedCommand, command, params] = this.#parseCommand(input);
-    this.#runCommand(selectedCommand, command, params)
-    
-  }
-  #parseCommand(input) {
     const args = input.split(' ');
     const command = args[0];
     const params = args.slice(1).filter(e => e);
@@ -203,30 +190,13 @@ export default class FTerminal {
     } else {
       this.write(`-foxterm: ${command}: command not found`);
     }
-    return [selectedCommand, command, params]
-  }
-  #runCommand(selectedCommand, command, params) {
     if (selectedCommand != null) {
-      let callback = [] // handling for properly finishing async functions
-      if (selectedCommand.async) { 
-        callback = [this.postCommandHandling, (command)]
+      if (selectedCommand.prototype instanceof Command) {
+        selectedCommand.exec(params, this);
+      } else {
+        selectedCommand(params);
       }
-      try {
-        this.currentCommand = new selectedCommand(params, this, callback);
-      } catch (err) {
-        if (callback) {callback[0](...callback[1])}
-        if (!err instanceof CommandError) {
-          throw err
-        }
-      }
-      if (!selectedCommand.async) { // sick, twisted, evil.
-        this.postCommandHandling(command);
-      }
-      return;
-    } 
-    this.postCommandHandling(command);
-  }
-  postCommandHandling(command) {
+    }
     if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
       this.write("\r\n");
     }
@@ -235,8 +205,8 @@ export default class FTerminal {
   #updateLineLength() {
     this.lineLength = this.homeLength + this.currentLine.length;
   }
-  write(data) {
-    this.term.write(data);
+  write(dat) {
+    this.term.write(dat);
   }
   reset() {
     this.term.reset();
@@ -269,18 +239,10 @@ export default class FTerminal {
       this.self.css("top", windowHeight - 54);
     }
   }
-  sendCommand(input, queue=true, processQueue=true) { // public function for literally One Use. Yay.
-    var [selectedCommand, command, params] = this.#parseCommand(input)
-    if (queue) {
-      this.commandQueue.push([selectedCommand, command, params]);
-    } else {
-      this.write(`${command} ${params.join(" ")}\r\n`);
-      this.#runCommand(selectedCommand, command, params);
-      return
-    }
-    if (queue && processQueue) {
-      this.processQueue();
-    }
+  sendCommand(input) { // public function for literally One Use. Yay.
+    this.write(input);
+    this.write("\r\n");
+    this.#handleCommand(input);
   }
   regenHomeText() {
     this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;

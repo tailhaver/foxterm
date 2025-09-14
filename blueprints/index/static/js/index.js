@@ -5,9 +5,9 @@
 
 import FTerminal from "./terminal.js"
 
-$.ajaxSetup({
-    async: false
-})
+// $.ajaxSetup({
+//     async: false
+// })
 
 const [width, height] = [$(window).width(), $(window).height()];
 
@@ -47,13 +47,13 @@ const t1 = new FTerminal(positions[0], sizes[0]);
 const t2 = new FTerminal(positions[1], sizes[1]);
 const t3 = new FTerminal(positions[2], sizes[2]);
 
-t1.sendCommand("fox");
-t2.sendCommand("cat aside.txt");
+t1.sendCommand("fox", false);
+t2.sendCommand("cat aside.txt", true, false); // i miss my kwargs
 t2.sendCommand("cat about.txt");
 // hacky fix to display text
 setTimeout(() => {
     t3.reset();
-    t3.write(`foxterm 0.1.2\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${t3.homeText}`);
+    t3.write(`foxterm 0.2.0\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${t3.homeText}`);
     t3.sendCommand("help");
 }, 0)
 

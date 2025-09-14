@@ -1,6 +1,6 @@
-foxterm 0.1.2
+foxterm 0.2.0
 powered by ]8;;https://xtermjs.org/\xterm.js]8;;\
 
 made with <3 by taggie, 2025
 proudly made without ai or copilot
-]8;;https://github.com/tailhaver/foxterm-public\the code is public!]8;;\
+]8;;https://github.com/tailhaver/foxterm-public\the frontend is public!]8;;\

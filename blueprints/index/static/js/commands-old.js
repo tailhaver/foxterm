@@ -2,39 +2,14 @@
 // taggie pyle, 2025
 // https://github.com/tailhaver
 
-import {CommandError} from "./errors.js"
-
 export class Command {
   static name = "";
   static description = "";
   static aliases = [];
   static usage = "";
   static help = "";
-  static async = false;
-  constructor(params, term, callback = []) {
-    this.params = params;
-    this.term = term;
-    this.running = true;
-    if (callback.length != 0) {
-      if (callback.length != 2) { throw new Error("Command callback must contain exactly 0 or 2 arguments.") }
-      this.callbackFn = callback[0].bind(term);
-      this.callbackArgs = callback[1];
-    }
-    this.term.lock = true;
-    this.exec();
-    if (!this.async) {
-      this.term.lock = false;
-    }
-  }
-  exec() {
-
-  }
-  kill() {
-    this.running = false;
-  }
-  write(data) {
-    if (!this.running) { throw new CommandError("Function has been killed! Its safe to ignore this error :)"); }
-    this.term.write(data);
+  static exec(params, term) {
+    throw new Error("Method 'exec()' is not implemented.")
   }
 }
 
@@ -43,13 +18,9 @@ export class HelpCommand extends Command {
   static description = "Display information about builtin commands.";
   static usage = "help [command]";
   static help = "\tArguments:\r\n\t  COMMAND\tCommand to view the help string for";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     if (params.length == 0) {
-      this.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
+      term.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
       return
     }
     let command = null;
@@ -59,14 +30,14 @@ export class HelpCommand extends Command {
       command = term.commands[term.aliases[params[0]]];
     }
     if (command == null) {
-      this.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
+      term.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
       return
     }
     if (command.usage.length == 0 && command.description.length == 0 && command.help.length == 0) {
-      this.write(`-foxterm: help: no topics match '${params[0]}'.`);
+      term.write(`-foxterm: help: no topics match '${params[0]}'.`);
       return
     }
-    this.write(`${command.name}: ${command.usage}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
+    term.write(`${command.name}: ${command.usage}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
   }
 }
 
@@ -75,11 +46,8 @@ export class TwitterCommand extends Command {
   static description = "Display a link to my Twitter profile.";
   static aliases = ["twt", "x"];
   static usage = "twitter";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    this.write("my twitter: \x1b]8;;http://twitter.com/transfoxes\x1b\\@transfoxes\x1b]8;;\x1b");
+  static exec(params, term) {
+    term.write("my twitter: \x1b]8;;http://twitter.com/transfoxes\x1b\\@transfoxes\x1b]8;;\x1b");
   }
 }
 
@@ -88,11 +56,8 @@ export class GitHubCommand extends Command {
   static description = "Display a link to my GitHub profile.";
   static aliases = ["git", "gh"];
   static usage = "github";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    this.write("my github: \x1b]8;;http://github.com/tailhaver\x1b\\@tailhaver\x1b]8;;\x1b");
+  static exec(params, term) {
+    term.write("my github: \x1b]8;;http://github.com/tailhaver\x1b\\@tailhaver\x1b]8;;\x1b");
   }
 }
 
@@ -100,22 +65,15 @@ export class EchoCommand extends Command {
   static name = "echo";
   static description = "Write arguments to stdout.";
   static usage = "echo [args ...]";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
-    this.write(params.join(" "));
+  static exec(params, term) {
+    term.write(params.join(" "));
   }
 }
+
 export class WhoAmICommand extends Command {
   static name = "whoami";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
-    this.write(term.user);
+  static exec(params, term) {
+    term.write(term.user);
   }
 }
 
@@ -125,13 +83,9 @@ export class FoxCommand extends Command {
   static name = "fox";
   static usage = "fox [-g, --grayscale]";
   static help = "\tOptions:\r\n\t  -g, --grayscale";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     if (params.some(s => ["-g", "--grayscale"].includes(s))) {
-      this.write(`[0m[38;5;231m        [0m[38;5;232m,[0m[38;5;245mx[0m[38;5;241m<-[0m[38;5;249mv[0m[38;5;231m          [0m[38;5;241m1[0m[38;5;245m)[0m[38;5;241m<[[0m[38;5;245mf[0m[38;5;231m        [0m \r
+      term.write(`[0m[38;5;231m        [0m[38;5;232m,[0m[38;5;245mx[0m[38;5;241m<-[0m[38;5;249mv[0m[38;5;231m          [0m[38;5;241m1[0m[38;5;245m)[0m[38;5;241m<[[0m[38;5;245mf[0m[38;5;231m        [0m \r
 [0m[38;5;231m       [0m[38;5;249mc[0m[38;5;241m}<<<<[0m[38;5;245mj)[0m[38;5;231m       [0m[38;5;249mY[0m[38;5;241m-<<<~[0m[38;5;249mc[0m[38;5;231m      [0m \r
 [0m[38;5;231m     [0m[38;5;232m.[0m[38;5;249mJ[0m[38;5;241m?-____-[0m[38;5;242m{[0m[38;5;245mr[0m[38;5;231m    [0m[38;5;241m_[0m[38;5;245mr[0m[38;5;241m_______[0m[38;5;244m|[0m[38;5;245m|[0m[38;5;231m     [0m \r
 [0m[38;5;231m     [0m[38;5;246mz[0m[38;5;250mL[0m[38;5;248mCYYYYYU[0m[38;5;250mL0[0m[38;5;241m][0m[38;5;231m   [0m[38;5;249mL[0m[38;5;250mL[0m[38;5;248mJYYYYYJ[0m[38;5;250mL[0m[38;5;251mm[0m[38;5;232m.[0m[38;5;231m    [0m \r
@@ -151,7 +105,7 @@ export class FoxCommand extends Command {
 [0m[38;5;231m         [0m[38;5;255m [0m[38;5;254m [0m[38;5;232m,[0m[38;5;253maMMMMMMMMMMM[0m[38;5;244m([0m[38;5;254m  [0m[38;5;255m [0m[38;5;231m        [0m \r
 [0m[38;5;231m            [0m[38;5;255m [0m[38;5;254m  [0m[38;5;241m+[0m[38;5;248mC[0m[38;5;253mho[0m[38;5;250mm[0m[38;5;244m([0m[38;5;232m [0m[38;5;254m [0m[38;5;255m [0m[38;5;231m            [0m\r
 `)} else {
-      this.write(`[0m[38;5;231m        [0m[38;5;16m,[0m[38;5;102mx[0m[38;5;59m<-[0m[38;5;145mv[0m[38;5;231m          [0m[38;5;59m1[0m[38;5;102m)[0m[38;5;59m<[[0m[38;5;102mf[0m[38;5;231m       [0m[38;5;231m [0m\r
+      term.write(`[0m[38;5;231m        [0m[38;5;16m,[0m[38;5;102mx[0m[38;5;59m<-[0m[38;5;145mv[0m[38;5;231m          [0m[38;5;59m1[0m[38;5;102m)[0m[38;5;59m<[[0m[38;5;102mf[0m[38;5;231m       [0m[38;5;231m [0m\r
 [0m[38;5;231m       [0m[38;5;145mc[0m[38;5;59m}<<<<[0m[38;5;102mj)[0m[38;5;231m       [0m[38;5;145mY[0m[38;5;59m-<<<~[0m[38;5;145mc[0m[38;5;59m;[0m[38;5;231m     [0m[38;5;231m [0m\r
 [0m[38;5;231m     [0m[38;5;16m.[0m[38;5;145mJ[0m[38;5;59m?-____-[0m[38;5;95m{[0m[38;5;102mr[0m[38;5;231m    [0m[38;5;59m_[0m[38;5;102mr[0m[38;5;59m_______[0m[38;5;101m|[0m[38;5;102m|[0m[38;5;231m    [0m[38;5;231m [0m\r
 [0m[38;5;231m     [0m[38;5;138mz[0m[38;5;215mL[0m[38;5;209mCYYYYYU[0m[38;5;215mL0[0m[38;5;59m][0m[38;5;231m   [0m[38;5;180mL[0m[38;5;215mL[0m[38;5;209mJYYYYYJ[0m[38;5;215mL[0m[38;5;216mm[0m[38;5;16m.[0m[38;5;231m   [0m[38;5;231m [0m\r
@@ -177,13 +131,9 @@ export class FoxCommand extends Command {
 export class ClearCommand extends Command {
   static name = "clear";
   static aliases = ["cls"];
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     term.reset();
-    this.write("\x1b[A");
+    term.write("\x1b[A");
   }
 }
 
@@ -192,17 +142,13 @@ export class OpenCommand extends Command {
   static description = "Open a social page in a new tab";
   static usage = "open [arg]";
   static help = "\tArguments:\r\n\t  PAGE\tOne of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.";
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     if (params.length != 1) {
-      this.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
+      term.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
       return false
     }
     if (!params.some(s => ["git", "github", "gh", "twitter", "twt", "x"].includes(s))) {
-      this.write(`open: invalid option ${params}\r\nTry 'help open' for more information\r\n`);
+      term.write(`open: invalid option ${params}\r\nTry 'help open' for more information\r\n`);
       return false
     }
     if (params.some(s => ["git", "github", "gh"].includes(s))) {
@@ -217,12 +163,8 @@ export class PwdCommand extends Command {
   static name = "pwd";
   static description = "Print the name of the current working directory.";
   static aliases = ["cwd"];
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
-    this.write(
+  static exec(params, term) {
+    term.write(
       term.dir.replace("~/", "/")
               .replace("~", "/")
     );
@@ -233,15 +175,9 @@ export class LsCommand extends Command {
   static name = "ls";
   static description = "List the files in a given directory (defaults to current directory)";
   static usage = "ls [DIR]";
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec(params, term) {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     if (params.length > 1) {
-      this.write(`ls: expected at most one argument\r\nTry 'help ls' for more information.\r\n`);
-      this.callbackFn(...this.callbackArgs);
+      term.write(`ls: expected at most one argument\r\nTry 'help ls' for more information.\r\n`);
       return false
     }
     let body = {
@@ -256,32 +192,30 @@ export class LsCommand extends Command {
       type: 'GET',
       statusCode: {
         400: () => {
-          this.write("ls: invalid parameters.\r\nTry 'help ls' for more information.\r\n")
+          term.write("ls: invalid parameters.\r\nTry 'help ls' for more information.\r\n")
         },
         403: () => {
-          this.write(`-foxterm: ls: accessing parent directories is currently disabled for security reasons.\r\n`);
+          term.write(`-foxterm: ls: accessing parent directories is currently disabled for security reasons.\r\n`);
         },
         404: () => {
-          this.write(`ls: cannot access ${params[0]}: No such file or directory\r\n`)
+          term.write(`ls: cannot access ${params[0]}: No such file or directory\r\n`)
         }
       },
       error: (request, status, error) => {
         if ([400, 403, 404].some(s => s === request.status)) { return }
-        this.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+        term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
         Object.entries(data).forEach((e) => {
           if (e.length != 2) {
-            this.write(`${e[0]}\r\n`);
+            term.write(`${e[0]}\r\n`);
             return
           }
-          this.write(`${e[1].isDir ? "\x1B[34;42m" : "\x1B[92m"}${e[0]}\x1B[39;49m\r\n`);
+          term.write(`${e[1].isDir ? "\x1B[34;42m" : "\x1B[92m"}${e[0]}\x1B[39;49m\r\n`);
         })
       }
-    }).then(() => {
-      this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
-    });
+    })
+    return
   }
 }
 
@@ -289,15 +223,9 @@ export class CatCommand extends Command {
   static name = "cat";
   static description = "Concatenate a file to stdout.";
   static usage = "cat [FILE]";
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec(params, term) {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     if (params.length !== 1) {
-      this.write("cat: expected one argument\r\nTry 'help cat' for more information.");
-      this.callbackFn(...this.callbackArgs);
+      term.write("cat: expected one argument\r\nTry 'help cat' for more information.");
       return false
     }
     $.ajax({
@@ -306,28 +234,25 @@ export class CatCommand extends Command {
       type: 'GET',
       statusCode: {
         400: () => {
-          this.write("cat: invalid parameters.\r\nTry 'help cat' for more information.");
+          term.write("cat: invalid parameters.\r\nTry 'help cat' for more information.");
         },
         403: () => {
-          this.write(`-foxterm: cat: accessing parent directories is currently disabled for security reasons.`);
+          term.write(`-foxterm: cat: accessing parent directories is currently disabled for security reasons.`);
         },
         404: () => {
-          this.write(`cat: ${params[0]}: No such file or directory`);
+          term.write(`cat: ${params[0]}: No such file or directory`);
         }
       },
       error: (request, status, error) => {
         if ([400, 403, 404].some(s => s === request.status)) { return }
-        this.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+        term.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
       },
       success: (data) => {
         data.forEach((e) => {
-          this.write(e.replace("\n", "\r\n"))
+          term.write(e.replace("\n", "\r\n"))
         })
       }
-    }).always(() => {
-      this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
-    });
+    })
   }
 }
 
@@ -335,15 +260,9 @@ export class CdCommand extends Command {
   static name = "cd";
   static description = "Change the shell working directory";
   static usage = "cd [DIR]";
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
-  }
-  exec() {
-    var [term, params] = [this.term, this.params];
+  static exec(params, term) {
     if (params.length !== 1) {
-      this.write("cd: expected one argument\r\nTry 'help cd' for more information.");
-      this.callbackFn(...this.callbackArgs);
+      term.write("cd: expected one argument\r\nTry 'help cd' for more information.");
       return false
     }
     if (params[0].includes("..")) {
@@ -368,15 +287,15 @@ export class CdCommand extends Command {
       type: 'GET',
       statusCode: {
         400: () => {
-          this.write("cd: invalid parameters.\r\nTry 'help cd' for more information.\r\n");
+          term.write("cd: invalid parameters.\r\nTry 'help cd' for more information.\r\n");
         },
         403: () => {
-          this.write(`-foxterm: cd: ${params[0]}: Not a directory\r\n`);
+          term.write(`-foxterm: cd: ${params[0]}: Not a directory\r\n`);
         }
       },
       error: (request, status, error) => {
         if ([400, 403].some(s => s === request.status)) { return }
-        this.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+        term.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
         if (params[0] == "~") {
@@ -386,10 +305,7 @@ export class CdCommand extends Command {
         }
         term.regenHomeText();
       }
-    }).always(() => {
-      this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
-    });
+    })
   }
 }
 

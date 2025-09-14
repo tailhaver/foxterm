@@ -33,12 +33,6 @@ async def ls():
     logger.info(os.path.abspath(searchpath))
     files = os.listdir(searchpath)
     return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}    
-    # if isinstance(path, str): 
-    #     path = path.rstrip("/")
-    # if path is not None and os.path.isdir(f"{home}/{path}"):
-    #     home = f"{home}/{path}"
-    # files = os.listdir(home)
-    # return {k: {"isDir": os.path.isdir(f"{home}/{k}")} for k in files}
 
 @blueprint.route('/cat', methods=['GET'])
 async def cat():
