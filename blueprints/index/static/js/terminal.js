@@ -180,7 +180,7 @@ export default class FTerminal {
       if (this.commandQueue.length == 0) { clearInterval(queueInterval) }
       if ( this.lock ) { return }
       fn();
-    }, 50)
+    }, 125)
   }
   #handleCommand(input) {
     const [selectedCommand, command, params] = this.#parseCommand(input);
