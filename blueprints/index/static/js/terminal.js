@@ -203,6 +203,7 @@ export default class FTerminal {
     } else {
       this.write(`-foxterm: ${command}: command not found`);
     }
+    console.log(this.#parseArgs(selectedCommand, input));
     return [selectedCommand, command, params]
   }
   #runCommand(selectedCommand, command, params) {
@@ -214,8 +215,8 @@ export default class FTerminal {
       try {
         this.currentCommand = new selectedCommand(params, this, callback);
       } catch (err) {
-        if (callback) {callback[0](...callback[1])}
-        if (!err instanceof CommandError) {
+        if (callback.length != 0) {callback[0](...callback[1])}
+        if (typeof err !== CommandError) {
           throw err
         }
       }
@@ -225,6 +226,28 @@ export default class FTerminal {
       return;
     } 
     this.postCommandHandling(command);
+  }
+  #parseArgs(selectedCommand, string) {
+    // more ugly black magic fuckery
+    // const kwparamsRe = new RegExp(String.raw`((${selectedCommand.kwparams.join("|")}\b) (\"[a-zA-Z0-9 ]+?\"|\'[a-zA-Z0-9 ]+?\'|[a-zA-Z0-9]+?\b))`, "g");
+    // const flagsRe = new RegExp(String.raw`(?<=\s)(${selectedCommand.flags.join("|")})\b`, "g");
+    // const stringRe = new RegExp(/(?<= )(\".+?\"|\'.+?\'|\b(?<!\-)[a-zA-Z0-9]+?\b)/g);
+
+    // let kwparams = string.match(kwparamsRe);
+    // let flags = string.match(flagsRe);
+    // let strings = string.replaceAll(kwparamsRe, "").replaceAll(flagsRe, "").replaceAll(/\s+/g, " ").match(stringRe);
+
+    // selectedCommand.flags.map((e) => {
+    //   return e.flags.
+    // })
+    throw new Error("Not yet implemented");
+
+    return {
+      kwparams: kwparams, 
+      flags: flags, 
+      strings: strings
+    }
+
   }
   postCommandHandling(command) {
     if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code

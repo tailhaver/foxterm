@@ -4,13 +4,32 @@
 
 import {CommandError} from "./errors.js"
 
+function generateUsage(command) {
+  if (!command instanceof Command) {
+    throw new Error("generateUsage command argument must be based on Command!");
+  }
+
+  let flags = command.flags.map((e) => {
+    return `[${e.flags.join("|")}]`;
+  });
+  let kwparams = command.kwparams.map((e) => {
+    return `${e.required ? "" : "[" }${e.kwparams.join("|")} ${e.argName}${e.required ? "" : "]" }`;
+  });
+  let positional = command.positionalArgs.map((e) => {
+    return `${e.required ? "" : "[" }${e.name}${e.nargs !== 0 && e.nargs !== 1 ? "..." : ""}${e.required ? "" : "]" }`;
+  });
+  return [command.name, kwparams.join(" "), flags.join(" "), positional.join(" ")].filter(e => e).join(" ");
+}
+
 export class Command {
   static name = "";
   static description = "";
   static aliases = [];
-  static usage = "";
   static help = "";
   static async = false;
+  static kwparams = [];
+  static flags = [];
+  static positionalArgs = []
   constructor(params, term, callback = []) {
     this.params = params;
     this.term = term;
@@ -41,7 +60,14 @@ export class Command {
 export class HelpCommand extends Command {
   static name = "help";
   static description = "Display information about builtin commands.";
-  static usage = "help [command]";
+  static positionalArgs = [
+    {
+      name: "command",
+      nargs: "*",
+      help: "Command to view the help string for",
+      required: true
+    }
+  ]
   static help = "\tArguments:\r\n\t  COMMAND\tCommand to view the help string for";
   constructor(params, term, callback) {
     super(params, term, callback);
@@ -62,11 +88,11 @@ export class HelpCommand extends Command {
       this.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
       return
     }
-    if (command.usage.length == 0 && command.description.length == 0 && command.help.length == 0) {
+    if (command.description.length == 0 && command.help.length == 0) {
       this.write(`-foxterm: help: no topics match '${params[0]}'.`);
       return
     }
-    this.write(`${command.name}: ${command.usage}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
+    this.write(`${command.name}: ${generateUsage(command)}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
   }
 }
 
@@ -74,7 +100,6 @@ export class TwitterCommand extends Command {
   static name = "twitter";
   static description = "Display a link to my Twitter profile.";
   static aliases = ["twt", "x"];
-  static usage = "twitter";
   constructor(params, term, callback) {
     super(params, term, callback);
   }
@@ -87,7 +112,6 @@ export class GitHubCommand extends Command {
   static name = "github";
   static description = "Display a link to my GitHub profile.";
   static aliases = ["git", "gh"];
-  static usage = "github";
   constructor(params, term, callback) {
     super(params, term, callback);
   }
@@ -99,7 +123,14 @@ export class GitHubCommand extends Command {
 export class EchoCommand extends Command {
   static name = "echo";
   static description = "Write arguments to stdout.";
-  static usage = "echo [args ...]";
+  static positionalArgs = [
+    {
+      name: "arg",
+      nargs: "*",
+      help: "",
+      required: true
+    }
+  ]
   constructor(params, term, callback) {
     super(params, term, callback);
   }
@@ -123,8 +154,13 @@ export class WhoAmICommand extends Command {
 // i should submit this when seeking a diagnosis for being Clinically Insane
 export class FoxCommand extends Command {
   static name = "fox";
-  static usage = "fox [-g, --grayscale]";
-  static help = "\tOptions:\r\n\t  -g, --grayscale";
+  static flags = [
+    {
+      name: "grayscale",
+      flags: ["-g", "--grayscale"],
+      help: ""
+    }
+  ]
   constructor(params, term, callback) {
     super(params, term, callback);
   }
@@ -189,9 +225,15 @@ export class ClearCommand extends Command {
 
 export class OpenCommand extends Command {
   static name = "open";
-  static description = "Open a social page in a new tab";
-  static usage = "open [arg]";
-  static help = "\tArguments:\r\n\t  PAGE\tOne of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.";
+  static description = "Open one of my socials in a new tab";
+  static positionalArgs = [
+    {
+      name: "PAGE",
+      nargs: 1,
+      help: "One of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.",
+      required: true
+    }
+  ]
   constructor(params, term, callback) {
     super(params, term, callback);
   }
@@ -232,7 +274,14 @@ export class PwdCommand extends Command {
 export class LsCommand extends Command {
   static name = "ls";
   static description = "List the files in a given directory (defaults to current directory)";
-  static usage = "ls [DIR]";
+  static positionalArgs = [
+    {
+      name: "DIR",
+      nargs: 1,
+      help: "",
+      required: false
+    }
+  ]
   static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
@@ -288,7 +337,14 @@ export class LsCommand extends Command {
 export class CatCommand extends Command {
   static name = "cat";
   static description = "Concatenate a file to stdout.";
-  static usage = "cat [FILE]";
+  static positionalArgs = [
+    {
+      name: "FILE",
+      nargs: 1,
+      help: "",
+      required: true
+    }
+  ]
   static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
@@ -334,7 +390,14 @@ export class CatCommand extends Command {
 export class CdCommand extends Command {
   static name = "cd";
   static description = "Change the shell working directory";
-  static usage = "cd [DIR]";
+  static positionalArgs = [
+    {
+      name: "DIR",
+      nargs: 1,
+      help: "",
+      required: true
+    }
+  ]
   static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);

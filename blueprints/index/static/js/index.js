@@ -56,9 +56,6 @@ setTimeout(() => {
     t3.write(`foxterm 0.2.1\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${t3.homeText}`);
     t3.sendCommand("help");
 }, 0)
-setTimeout(() => {
-    $(window).trigger("resize");
-}, 200)
 
 $(window).on("resize", (e) => {
     if (e.target !== window) { return }
