@@ -15,7 +15,7 @@ function generateUsage(command) {
   let kwparams = command.kwparams.map((e) => {
     return `${e.required ? "" : "[" }${e.kwparams.join("|")} ${e.argName}${e.required ? "" : "]" }`;
   });
-  let positional = command.positionalArgs.map((e) => {
+  let positional = command.strings.map((e) => {
     return `${e.required ? "" : "[" }${e.name}${e.nargs !== 0 && e.nargs !== 1 ? "..." : ""}${e.required ? "" : "]" }`;
   });
   return [command.name, kwparams.join(" "), flags.join(" "), positional.join(" ")].filter(e => e).join(" ");
@@ -27,9 +27,9 @@ export class Command {
   static aliases = [];
   static help = "";
   static async = false;
-  static kwparams = [];
-  static flags = [];
-  static positionalArgs = []
+  static kwparams = {};
+  static flags = {};
+  static strings = {};
   constructor(params, term, callback = []) {
     this.params = params;
     this.term = term;
@@ -60,36 +60,35 @@ export class Command {
 export class HelpCommand extends Command {
   static name = "help";
   static description = "Display information about builtin commands.";
-  static positionalArgs = [
-    {
-      name: "command",
+  static strings = {
+    command: {
       nargs: "*",
       help: "Command to view the help string for",
-      required: true
+      required: false
     }
-  ]
+  }
   static help = "\tArguments:\r\n\t  COMMAND\tCommand to view the help string for";
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (params.length == 0) {
+    if (!params.command) {
       this.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
       return
     }
     let command = null;
-    if (Object.keys(term.commands).includes(params[0])) {
-      command = term.commands[params[0]];
-    } else if (Object.keys(term.aliases).includes(params[0])) {
-      command = term.commands[term.aliases[params[0]]];
+    if (Object.keys(term.commands).includes(params.command)) {
+      command = term.commands[params.command];
+    } else if (Object.keys(term.aliases).includes(params.command)) {
+      command = term.commands[term.aliases[params.command]];
     }
     if (command == null) {
       this.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
       return
     }
     if (command.description.length == 0 && command.help.length == 0) {
-      this.write(`-foxterm: help: no topics match '${params[0]}'.`);
+      this.write(`-foxterm: help: no topics match '${params.command}'.`);
       return
     }
     this.write(`${command.name}: ${generateUsage(command)}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
@@ -123,20 +122,22 @@ export class GitHubCommand extends Command {
 export class EchoCommand extends Command {
   static name = "echo";
   static description = "Write arguments to stdout.";
-  static positionalArgs = [
-    {
-      name: "arg",
+  static strings = {
+    arg: {
       nargs: "*",
       help: "",
       required: true
     }
-  ]
+  }
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    this.write(params.join(" "));
+    if (!params.strings.arg) {
+      return
+    }
+    this.write(params.strings.arg);
   }
 }
 export class WhoAmICommand extends Command {
@@ -154,19 +155,18 @@ export class WhoAmICommand extends Command {
 // i should submit this when seeking a diagnosis for being Clinically Insane
 export class FoxCommand extends Command {
   static name = "fox";
-  static flags = [
-    {
-      name: "grayscale",
+  static flags = {
+    grayscale: {
       flags: ["-g", "--grayscale"],
       help: ""
     }
-  ]
+  }
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (params.some(s => ["-g", "--grayscale"].includes(s))) {
+    if (params.flags.grayscale) {
       this.write(`[0m[38;5;231m        [0m[38;5;232m,[0m[38;5;245mx[0m[38;5;241m<-[0m[38;5;249mv[0m[38;5;231m          [0m[38;5;241m1[0m[38;5;245m)[0m[38;5;241m<[[0m[38;5;245mf[0m[38;5;231m        [0m \r
 [0m[38;5;231m       [0m[38;5;249mc[0m[38;5;241m}<<<<[0m[38;5;245mj)[0m[38;5;231m       [0m[38;5;249mY[0m[38;5;241m-<<<~[0m[38;5;249mc[0m[38;5;231m      [0m \r
 [0m[38;5;231m     [0m[38;5;232m.[0m[38;5;249mJ[0m[38;5;241m?-____-[0m[38;5;242m{[0m[38;5;245mr[0m[38;5;231m    [0m[38;5;241m_[0m[38;5;245mr[0m[38;5;241m_______[0m[38;5;244m|[0m[38;5;245m|[0m[38;5;231m     [0m \r
@@ -226,28 +226,27 @@ export class ClearCommand extends Command {
 export class OpenCommand extends Command {
   static name = "open";
   static description = "Open one of my socials in a new tab";
-  static positionalArgs = [
-    {
-      name: "PAGE",
+  static strings = {
+    page: {
       nargs: 1,
       help: "One of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.",
       required: true
     }
-  ]
+  }
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (params.length != 1) {
+    if (!params.strings.page) {
       this.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
+      return false;
+    }
+    if (![params.strings.page].some(s => ["git", "github", "gh", "twitter", "twt", "x"].includes(s))) {
+      this.write(`open: invalid option ${params.strings.page}\r\nTry 'help open' for more information\r\n`);
       return false
     }
-    if (!params.some(s => ["git", "github", "gh", "twitter", "twt", "x"].includes(s))) {
-      this.write(`open: invalid option ${params}\r\nTry 'help open' for more information\r\n`);
-      return false
-    }
-    if (params.some(s => ["git", "github", "gh"].includes(s))) {
+    if ([params.strings.page].some(s => ["git", "github", "gh"].includes(s))) {
       window.open("https://github.com/tailhaver", "_blank");
       return
     }
@@ -274,30 +273,24 @@ export class PwdCommand extends Command {
 export class LsCommand extends Command {
   static name = "ls";
   static description = "List the files in a given directory (defaults to current directory)";
-  static positionalArgs = [
-    {
-      name: "DIR",
+  static strings = {
+    dir: {
       nargs: 1,
       help: "",
       required: false
     }
-  ]
+  }
   static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec(params, term) {
     var [term, params] = [this.term, this.params];
-    if (params.length > 1) {
-      this.write(`ls: expected at most one argument\r\nTry 'help ls' for more information.\r\n`);
-      this.callbackFn(...this.callbackArgs);
-      return false
-    }
     let body = {
       cwd: term.dir
     };
-    if (params.length > 0) {
-      body.path = params[0];
+    if (params.strings.dir) {
+      body.path = params.strings.dir;
     }
     $.ajax({
       url: "ls",
@@ -311,7 +304,7 @@ export class LsCommand extends Command {
           this.write(`-foxterm: ls: accessing parent directories is currently disabled for security reasons.\r\n`);
         },
         404: () => {
-          this.write(`ls: cannot access ${params[0]}: No such file or directory\r\n`)
+          this.write(`ls: cannot access ${params.strings.dir}: No such file or directory\r\n`)
         }
       },
       error: (request, status, error) => {
@@ -327,7 +320,7 @@ export class LsCommand extends Command {
           this.write(`${e[1].isDir ? "\x1B[34;42m" : "\x1B[92m"}${e[0]}\x1B[39;49m\r\n`);
         })
       }
-    }).then(() => {
+    }).always(() => {
       this.callbackFn(...this.callbackArgs);
       this.term.lock = false;
     });
@@ -337,28 +330,27 @@ export class LsCommand extends Command {
 export class CatCommand extends Command {
   static name = "cat";
   static description = "Concatenate a file to stdout.";
-  static positionalArgs = [
-    {
-      name: "FILE",
+  static strings = {
+    file: {
       nargs: 1,
       help: "",
       required: true
     }
-  ]
+  }
   static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec(params, term) {
     var [term, params] = [this.term, this.params];
-    if (params.length !== 1) {
+    if (!params.strings.file) {
       this.write("cat: expected one argument\r\nTry 'help cat' for more information.");
       this.callbackFn(...this.callbackArgs);
       return false
     }
     $.ajax({
       url: 'cat',
-      data: {cwd: term.dir, path: params[0]},
+      data: {cwd: term.dir, path: params.strings.file},
       type: 'GET',
       statusCode: {
         400: () => {
@@ -368,7 +360,7 @@ export class CatCommand extends Command {
           this.write(`-foxterm: cat: accessing parent directories is currently disabled for security reasons.`);
         },
         404: () => {
-          this.write(`cat: ${params[0]}: No such file or directory`);
+          this.write(`cat: ${params.strings.file}: No such file or directory`);
         }
       },
       error: (request, status, error) => {
@@ -390,31 +382,30 @@ export class CatCommand extends Command {
 export class CdCommand extends Command {
   static name = "cd";
   static description = "Change the shell working directory";
-  static positionalArgs = [
-    {
-      name: "DIR",
+  static strings = {
+    dir: {
       nargs: 1,
       help: "",
       required: true
     }
-  ]
+  }
   static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (params.length !== 1) {
+    if (!params.strings.dir) {
       this.write("cd: expected one argument\r\nTry 'help cd' for more information.");
       this.callbackFn(...this.callbackArgs);
       return false
     }
-    if (params[0].includes("..")) {
+    if (params.strings.dir && params.strings.dir.includes("..")) {
       let currentPath = []
-      if (params[0].charAt(0) != "/") {
+      if (params.strings.dir.charAt(0) != "/") {
         currentPath = term.dir.split("/")
       }
-      const segments = currentPath.concat(params[0].split("/"));
+      const segments = currentPath.concat(params.strings.dir.split("/"));
       var newPath = [];
       segments.forEach((e) => {
         if (e == "..") {
@@ -423,18 +414,18 @@ export class CdCommand extends Command {
           newPath.push(e);
         }
       })
-      params[0] = newPath.join("/");
+      params.strings.dir = newPath.join("/");
     }
     $.ajax({
       url: 'cd',
-      data: {cwd: term.dir, path: params[0]},
+      data: {cwd: term.dir, path: params.strings.dir},
       type: 'GET',
       statusCode: {
         400: () => {
           this.write("cd: invalid parameters.\r\nTry 'help cd' for more information.\r\n");
         },
         403: () => {
-          this.write(`-foxterm: cd: ${params[0]}: Not a directory\r\n`);
+          this.write(`-foxterm: cd: ${params.strings.dir}: Not a directory\r\n`);
         }
       },
       error: (request, status, error) => {
@@ -442,10 +433,10 @@ export class CdCommand extends Command {
         this.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
-        if (params[0] == "~") {
+        if (params.strings.dir == "~") {
           term.dir = "~";
         } else {
-          term.dir = `${term.dir}/${params[0]}`;
+          term.dir = `${term.dir}/${params.strings.dir}`;
         }
         term.regenHomeText();
       }

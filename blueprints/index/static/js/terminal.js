@@ -7,6 +7,21 @@ import {commands} from "./commands.js"
 import {CommandError} from "./errors.js"
 
 const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
+
+function prettifyParams(command, params) {
+  if (!params) {
+    return ""
+  }
+  const kwparams = Object.entries(params.kwparams).filter(e => e[1]).map(e => {
+    return `${command.kwparams[e[0]].flags[0]} ${params[1]}`;
+  }).join(" ");
+  const flags = Object.entries(params.flags).filter(e => e[1]).map(e => {
+    return command.flags[e[0]].flags[0];
+  }).join(" ");
+  const strings = Object.entries(params.strings).map(e => e[1])
+  return [[kwparams, flags].join(" ").trim(), strings].join(" ").trim(); // what is this abomination x3
+}
+
 export default class FTerminal {
   constructor(pos = [24, 24], size = [738, 457]) {
     this.term = new Terminal({
@@ -173,7 +188,7 @@ export default class FTerminal {
         return;
       }
       [selectedCommand, command, params] = this.commandQueue.shift();
-      this.write(`${command} ${params.join(" ")}\r\n`);
+      this.write(`${command} ${prettifyParams(selectedCommand, params)}\r\n`);
       this.#runCommand(selectedCommand, command, params);
     };
     var queueInterval = setInterval(() => {
@@ -182,15 +197,9 @@ export default class FTerminal {
       fn();
     }, 125)
   }
-  #handleCommand(input) {
-    const [selectedCommand, command, params] = this.#parseCommand(input);
-    this.#runCommand(selectedCommand, command, params)
-    
-  }
   #parseCommand(input) {
     const args = input.split(' ');
     const command = args[0];
-    const params = args.slice(1).filter(e => e);
     let selectedCommand = null;
     if (command.length == 0) {
       this.write(this.homeText);
@@ -203,14 +212,14 @@ export default class FTerminal {
     } else {
       this.write(`-foxterm: ${command}: command not found`);
     }
-    console.log(this.#parseArgs(selectedCommand, input));
+    const params = this.#parseArgs(selectedCommand, input);
     return [selectedCommand, command, params]
   }
   #runCommand(selectedCommand, command, params) {
     if (selectedCommand != null) {
       let callback = [] // handling for properly finishing async functions
       if (selectedCommand.async) { 
-        callback = [this.postCommandHandling, (command)]
+        callback = [this.postCommandHandling, [command]]
       }
       try {
         this.currentCommand = new selectedCommand(params, this, callback);
@@ -227,10 +236,24 @@ export default class FTerminal {
     } 
     this.postCommandHandling(command);
   }
+  #handleCommand(input) {
+    const [selectedCommand, command, params] = this.#parseCommand(input);
+    this.#runCommand(selectedCommand, command, params)
+  }
   #parseArgs(selectedCommand, string) {
     // more ugly black magic fuckery
-    const kwparamsRe = new RegExp(String.raw`((${Object.values(selectedCommand.kwparams).map(e => e.flags.join("|")).join("|")}\b) (\"[a-zA-Z0-9 ]+?\"|\'[a-zA-Z0-9 ]+?\'|[a-zA-Z0-9]+?\b))`, "g");
-    const flagsRe = new RegExp(String.raw`(?<=\s)(${Object.values(selectedCommand.flags).map(e => e.flags.join("|")).join("|")})\b`, "g");
+    if (!selectedCommand) { return }
+    string = string.split(' ').slice(1).join(' ');
+    if (selectedCommand.kwParams) {
+      var kwparamsRe = new RegExp(String.raw`((${Object.values(selectedCommand.kwparams).map(e => e.flags.join("|")).join("|")}\b) (\"[a-zA-Z0-9 ]+?\"|\'[a-zA-Z0-9 ]+?\'|[a-zA-Z0-9]+?\b))`, "g");
+    } else {
+      var kwparamsRe = new RegExp(String.raw``, "g");
+    }
+    if (selectedCommand.flags) {
+      var flagsRe = new RegExp(String.raw`(${Object.values(selectedCommand.flags).map(e => e.flags.join("|")).join("|")})\b`, "g");
+    } else {
+      var flagsRe = new RegExp(String.raw``, "g");
+    }
     
     const kwparams = Object.fromEntries(Object.entries(selectedCommand.kwparams).map((e) => {
       let arg = e[1];
@@ -242,41 +265,42 @@ export default class FTerminal {
 
     const flags = Object.fromEntries(Object.entries(selectedCommand.flags).map((e) => {
       let arg = e[1];
-      const re = new RegExp(String.raw`(?<=\s)(${arg.flags.join("|")})\b`, "g");
+      const re = new RegExp(String.raw`(${arg.flags.join("|")})\b`, "g");
       const match = string.match(re);
       arg = match && match.length > 0 ? true : false;
       return [e[0], arg];
     }));
 
     const filteredString = string.replaceAll(kwparamsRe, "").replaceAll(flagsRe, "").replaceAll(/\s+/g, " ");
-    const strings = Object.fromEntries(Object.entries(selectedCommand.positionalArgs).map((e) => {
+    const strings = Object.fromEntries(Object.entries(selectedCommand.strings).map((e) => {
       let arg = e[1];
       if (arg.nargs != 1 && arg.nargs != "*") {
         throw new Error("Command argument counts are not yet allowed to exceed 1.");
       }
-      const re = new RegExp(String.raw`(?<= )(\".+?\"|\'.+?\'|\b(?<!\-)[a-zA-Z0-9]+?\b ?)${arg.nargs == "*" ? "*" : ""}`, "g");
+      const re = new RegExp(String.raw`(\".+?\"|\'.+?\'|(\S(?<!\-)\S*\s?)${arg.nargs == "*" ? "*" : ""})${arg.nargs == "*" ? "*" : ""}`, "g");
       const match = filteredString.match(re);
-      arg = match && match.length > 0 ? arg[0] : false;
+      arg = match && match.length > 0 ? match[0] : false;
       return [e[0], arg]
     }));
-
     return {
       kwparams: kwparams, 
       flags: flags, 
-      positionalArgs: strings
+      strings: strings
     }
   }
   postCommandHandling(command) {
-    if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
-      this.write("\r\n");
-    }
-    this.write(this.homeText);
+    setTimeout(() => {
+      if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
+        this.write("\r\n");
+      }
+      this.write(this.homeText);
+    }, 0);
   }
   #updateLineLength() {
     this.lineLength = this.homeLength + this.currentLine.length;
   }
   write(data) {
-    this.term.write(data);
+    this.term.write(data ? data : "");
   }
   reset() {
     this.term.reset();
@@ -310,11 +334,11 @@ export default class FTerminal {
     }
   }
   sendCommand(input, queue=true, processQueue=true) { // public function for literally One Use. Yay.
-    var [selectedCommand, command, params] = this.#parseCommand(input)
+    var [selectedCommand, command, params] = this.#parseCommand(input);
     if (queue) {
       this.commandQueue.push([selectedCommand, command, params]);
     } else {
-      this.write(`${command} ${params.join(" ")}\r\n`);
+      this.write(`${command} ${prettifyParams(selectedCommand, params)}\r\n`);
       this.#runCommand(selectedCommand, command, params);
       return
     }
