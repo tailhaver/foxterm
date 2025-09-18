@@ -229,25 +229,42 @@ export default class FTerminal {
   }
   #parseArgs(selectedCommand, string) {
     // more ugly black magic fuckery
-    // const kwparamsRe = new RegExp(String.raw`((${selectedCommand.kwparams.join("|")}\b) (\"[a-zA-Z0-9 ]+?\"|\'[a-zA-Z0-9 ]+?\'|[a-zA-Z0-9]+?\b))`, "g");
-    // const flagsRe = new RegExp(String.raw`(?<=\s)(${selectedCommand.flags.join("|")})\b`, "g");
-    // const stringRe = new RegExp(/(?<= )(\".+?\"|\'.+?\'|\b(?<!\-)[a-zA-Z0-9]+?\b)/g);
+    const kwparamsRe = new RegExp(String.raw`((${Object.values(selectedCommand.kwparams).map(e => e.flags.join("|")).join("|")}\b) (\"[a-zA-Z0-9 ]+?\"|\'[a-zA-Z0-9 ]+?\'|[a-zA-Z0-9]+?\b))`, "g");
+    const flagsRe = new RegExp(String.raw`(?<=\s)(${Object.values(selectedCommand.flags).map(e => e.flags.join("|")).join("|")})\b`, "g");
+    
+    const kwparams = Object.fromEntries(Object.entries(selectedCommand.kwparams).map((e) => {
+      let arg = e[1];
+      const re = new RegExp(String.raw`((${arg.flags.join("|")}\b) (\"[a-zA-Z0-9 ]+?\"|\'[a-zA-Z0-9 ]+?\'|[a-zA-Z0-9]+?\b))${arg.nargs}`, "g");
+      const match = string.match(re);
+      arg = match && match.length > 0 ? arg[0] : false;
+      return [e[0], arg];
+    })); 
 
-    // let kwparams = string.match(kwparamsRe);
-    // let flags = string.match(flagsRe);
-    // let strings = string.replaceAll(kwparamsRe, "").replaceAll(flagsRe, "").replaceAll(/\s+/g, " ").match(stringRe);
+    const flags = Object.fromEntries(Object.entries(selectedCommand.flags).map((e) => {
+      let arg = e[1];
+      const re = new RegExp(String.raw`(?<=\s)(${arg.flags.join("|")})\b`, "g");
+      const match = string.match(re);
+      arg = match && match.length > 0 ? true : false;
+      return [e[0], arg];
+    }));
 
-    // selectedCommand.flags.map((e) => {
-    //   return e.flags.
-    // })
-    throw new Error("Not yet implemented");
+    const filteredString = string.replaceAll(kwparamsRe, "").replaceAll(flagsRe, "").replaceAll(/\s+/g, " ");
+    const strings = Object.fromEntries(Object.entries(selectedCommand.positionalArgs).map((e) => {
+      let arg = e[1];
+      if (arg.nargs != 1 && arg.nargs != "*") {
+        throw new Error("Command argument counts are not yet allowed to exceed 1.");
+      }
+      const re = new RegExp(String.raw`(?<= )(\".+?\"|\'.+?\'|\b(?<!\-)[a-zA-Z0-9]+?\b ?)${arg.nargs == "*" ? "*" : ""}`, "g");
+      const match = filteredString.match(re);
+      arg = match && match.length > 0 ? arg[0] : false;
+      return [e[0], arg]
+    }));
 
     return {
       kwparams: kwparams, 
       flags: flags, 
-      strings: strings
+      positionalArgs: strings
     }
-
   }
   postCommandHandling(command) {
     if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
