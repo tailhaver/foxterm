@@ -9,10 +9,10 @@ function generateUsage(command) {
     throw new Error("generateUsage command argument must be based on Command!");
   }
 
-  let flags = command.flags.map((e) => {
+  let flags = Object.values(command.flags).map((e) => {
     return `[${e.flags.join("|")}]`;
   });
-  let kwparams = command.kwparams.map((e) => {
+  let kwparams = Object.values(command.kwparams).map((e) => {
     return `${e.required ? "" : "[" }${e.kwparams.join("|")} ${e.argName}${e.required ? "" : "]" }`;
   });
   let positional = Object.values(command.strings).map((e, i) => {
@@ -73,15 +73,15 @@ export class HelpCommand extends Command {
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (!params.command) {
+    if (!params.strings.command) {
       this.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
       return
     }
     let command = null;
-    if (Object.keys(term.commands).includes(params.command)) {
-      command = term.commands[params.command];
-    } else if (Object.keys(term.aliases).includes(params.command)) {
-      command = term.commands[term.aliases[params.command]];
+    if (Object.keys(term.commands).includes(params.strings.command)) {
+      command = term.commands[params.strings.command];
+    } else if (Object.keys(term.aliases).includes(params.strings.command)) {
+      command = term.commands[term.aliases[params.strings.command]];
     }
     if (command == null) {
       this.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
