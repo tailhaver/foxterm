@@ -1,7 +1,7 @@
 export default class Window {
   constructor(pos = [24, 24], size = [738, 457], resizeCallback = () => {return}) {
     this.title = "abc"
-    this.self = $("<div>", {"class": "terminal"})
+    this.self = $("<div>", {"class": "window"})
       .append(
         $("<div>", {"class": "titlebar"})
           .append($("<p>", {"class": "title"}))

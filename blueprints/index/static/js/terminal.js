@@ -328,18 +328,18 @@ $(() => {
   var highestIndex = 5;
   $("body").on("click tap", ".close", (e) => {
     $(e.target).parent().parent().remove();
-    if ($(".terminal.ui-draggable").length == 0) {
+    if ($(".window.ui-draggable").length == 0) {
       setTimeout(() => {new FTerminal();}, 500);
     }
   })
-  $("body").on("mousedown", ".terminal.ui-draggable", (e) => {
-    const $this = $(e.target).closest('.terminal.ui-draggable');
+  $("body").on("mousedown", ".window.ui-draggable", (e) => {
+    const $this = $(e.target).closest('.window.ui-draggable');
     if ($this.css("z-index") == highestIndex + 1) {
       return
     }
     $(".focused").removeClass("focused");
     $this.addClass("focused");
-    $('.terminal[style*=z-index]').each((i, element) => {
+    $('.window[style*=z-index]').each((i, element) => {
       const index = $(element).css("z-index") - 1;
       if (index > highestIndex) {
         highestIndex = index;
