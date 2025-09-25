@@ -3,7 +3,9 @@
 // taggie pyle, 2025
 // https://github.com/tailhaver
 
+import MarkdownDisplay from "./markdown.js";
 import FTerminal from "./terminal.js"
+import WindowManager from "./windowManager.js"
 
 // $.ajaxSetup({
 //     async: false

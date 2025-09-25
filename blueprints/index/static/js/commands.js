@@ -3,6 +3,8 @@
 // https://github.com/tailhaver
 
 import {CommandError} from "./errors.js"
+import MarkdownDisplay from "./markdown.js";
+import WindowManager from "./windowManager.js"
 
 function generateUsage(command) {
   if (!command instanceof Command) {
@@ -225,32 +227,55 @@ export class ClearCommand extends Command {
 
 export class OpenCommand extends Command {
   static name = "open";
-  static description = "Open one of my socials in a new tab";
+  static description = "Open a file in a new window";
   static strings = {
-    page: {
+    file: {
       nargs: 1,
-      help: "One of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.",
+      help: "File to open",
       required: true
     }
   }
+  static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (!params.strings.page) {
+    if (!params.strings.file) {
       this.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
-      return false;
-    }
-    if (![params.strings.page].some(s => ["git", "github", "gh", "twitter", "twt", "x"].includes(s))) {
-      this.write(`open: invalid option ${params.strings.page}\r\nTry 'help open' for more information\r\n`);
+      this.callbackFn(...this.callbackArgs);
       return false
     }
-    if ([params.strings.page].some(s => ["git", "github", "gh"].includes(s))) {
-      window.open("https://github.com/tailhaver", "_blank");
-      return
-    }
-    window.open("https://twitter.com/transfoxes", "_blank");
+    $.ajax({
+      url: 'cat',
+      data: {cwd: term.dir, path: params.strings.file},
+      type: 'GET',
+      statusCode: {
+        400: () => {
+          this.write("open: invalid parameters.\r\nTry 'help open' for more information.\r\n");
+        },
+        403: () => {
+          this.write(`-foxterm: open: accessing parent directories is currently disabled for security reasons.\r\n`);
+        },
+        404: () => {
+          this.write(`open: ${params.strings.file}: No such file!\r\n`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([400, 403, 404].some(s => s === request.status)) { return }
+        this.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+      },
+      success: (data) => {
+        const uuid = crypto.randomUUID();
+        WindowManager[uuid] = new MarkdownDisplay();
+        WindowManager[uuid].setText(data.join("\n"));
+        WindowManager[uuid].window.setTitle(params.strings.file)
+        WindowManager[uuid].window.self.trigger("mousedown");
+      }
+    }).always(() => {
+      this.callbackFn(...this.callbackArgs);
+      this.term.lock = false;
+    });
   }
 }
 
@@ -312,7 +337,13 @@ export class LsCommand extends Command {
         this.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
-        Object.entries(data).forEach((e) => {
+        let entries = Object.entries(data);
+        entries.sort((a, b) => {
+          if (a[1].isDir && !b[1].isDir) { return -1 }
+          if (!a[1].isDir && b[1].isDir) { return 1 }
+          return a[0].toLowerCase().localeCompare(b[0].toLowerCase());
+        })
+        entries.forEach((e) => {
           if (e.length != 2) {
             this.write(`${e[0]}\r\n`);
             return
