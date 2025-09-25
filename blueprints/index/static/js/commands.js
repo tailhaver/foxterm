@@ -271,6 +271,7 @@ export class OpenCommand extends Command {
         WindowManager[uuid].setText(data.join("\n"));
         WindowManager[uuid].window.setTitle(params.strings.file)
         WindowManager[uuid].window.self.trigger("mousedown");
+        WindowManager[$(".focus").closest('.window.ui-draggable').attr("window-id")].term.blur();
       }
     }).always(() => {
       this.callbackFn(...this.callbackArgs);
