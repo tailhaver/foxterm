@@ -5,6 +5,7 @@
 
 import {commands} from "./commands.js"
 import {CommandError} from "./errors.js"
+import Window from "./window.js"
 
 const re = /[\u001b\u009b][[()#;?]*(?:[0-9]{1,4}(?:;[0-9]{0,4})*)?[0-9A-ORZcf-nqry=><]/g;
 
@@ -48,17 +49,14 @@ export default class FTerminal {
       },
       convertEol: true
     });
-    this.self = $("<div>", {"class": "terminal"}).append($("<div>", {"class": "titlebar"}).append($("<button>", {"class": "close", "text": "x"}))).append($("<div>", {"class": "body"})).appendTo($("body"));
-    this.handleWindowResize(pos, size);
-    this.body = $(this.self).children()[1];
-    $(this.self).draggable({
-      handle: ".titlebar",
-      scroll: false,
-      stop: (e, ui) => {
-        this.lockToWindow();
-      }
-    });
-    $(this.self).resizable({
+
+    this.window = new Window(pos, size);
+    this.window.updateTitle("foxterm");
+    // have to manually set resizing here because if i try to pass `this` into
+    // the Window obj it throws a fit. oops.
+    this.window.handleWindowResize(pos, size);
+    this.#resizeTerminal();
+    $(this.window.self).resizable({
       handles: "all",
       containment: "parent",
       resize: (e, ui) => {
@@ -75,7 +73,7 @@ export default class FTerminal {
     this.homeLength = this.homeText.replace(re, "").length + 1;
     this.lineLength = this.homeLength + this.currentLine.length;
     this.#initCommands();
-    this.term.open(this.body);
+    this.term.open(this.window.body);
     this.write(this.homeText);
     this.cursorX = this.lineLength;
     this.term.onData(e => {this.#handleData(e)});
@@ -306,32 +304,7 @@ export default class FTerminal {
     this.term.reset();
   }
   #resizeTerminal() {
-    this.term.resize(Math.floor($(this.self).innerWidth() / 9) - 4, Math.floor(($(this.self).innerHeight() - $($(this.self).children()[0]).innerHeight() - 16) / 17));
-  }
-  handleWindowResize(pos = [null, null], size = [null, null]) {
-    // more black magic fuckery someone put me down
-    this.self.css(
-      Object.fromEntries(
-        Object.entries({"left": pos[0], "top": pos[1], "width": size[0], "height": size[1]})
-              .filter((e) => {return e[1]})
-      )
-    );
-    this.#resizeTerminal();
-  }
-  lockToWindow() {
-    const [windowWidth, windowHeight] = [$(window).width(), $(window).height()];
-    const [ypos, xpos] = Object.values(this.self.offset());
-    const [width, height] = [this.self.width(), this.self.height()];
-    if (xpos + width < 54) {
-      this.self.css("left", 0 - width + 54);
-    } else if (xpos > windowWidth - 54) {
-      this.self.css("left", windowWidth - 54);
-    }
-    if (ypos < 0) {
-      this.self.css("top", 0);
-    } else if (ypos > windowHeight - 54) {
-      this.self.css("top", windowHeight - 54);
-    }
+    this.term.resize(Math.floor($(this.window.self).innerWidth() / 9) - 4, Math.floor(($(this.window.self).innerHeight() - $($(this.window.self).children()[0]).innerHeight() - 16) / 17));
   }
   sendCommand(input, queue=true, processQueue=true) { // public function for literally One Use. Yay.
     var [selectedCommand, command, params] = this.#parseCommand(input);
@@ -364,6 +337,8 @@ $(() => {
     if ($this.css("z-index") == highestIndex + 1) {
       return
     }
+    $(".focused").removeClass("focused");
+    $this.addClass("focused");
     $('.terminal[style*=z-index]').each((i, element) => {
       const index = $(element).css("z-index") - 1;
       if (index > highestIndex) {
