@@ -11,6 +11,10 @@ blueprint = Blueprint(
 )
 logger = None
 
+links = {
+    "readme.md": "README.md"
+}
+
 @blueprint.route('/ls', methods=['GET'])
 async def ls():
     cwd = request.args.get("cwd")
@@ -31,9 +35,9 @@ async def ls():
     if not os.path.exists(searchpath):
         return "", 404
     logger.info(os.path.abspath(searchpath))
-    files = os.listdir(searchpath)
-    return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}    
-
+    files = [*os.listdir(searchpath), *links.keys()]
+    return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}
+           
 @blueprint.route('/cat', methods=['GET'])
 async def cat():
     cwd = request.args.get("cwd")
@@ -44,7 +48,10 @@ async def cat():
         return "", 403
     home = "static/filesystem"
     cwd = cwd.replace("~", "").rstrip("/")
-    filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
+    if path.lower() in links.keys():
+        filepath = links[path.lower()]
+    else:
+        filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
     if not os.path.exists(filepath):
         return "", 404
     with open(filepath, "r", encoding="utf-8") as fp:

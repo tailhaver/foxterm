@@ -51,7 +51,7 @@ export default class FTerminal {
     });
 
     this.window = new Window(pos, size);
-    this.window.updateTitle("foxterm");
+    this.window.setTitle("foxterm");
     // have to manually set resizing here because if i try to pass `this` into
     // the Window obj it throws a fit. oops.
     this.window.handleWindowResize(pos, size);
@@ -323,33 +323,3 @@ export default class FTerminal {
     this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;
   }
 }
-
-$(() => {
-  var highestIndex = 5;
-  $("body").on("click tap", ".close", (e) => {
-    $(e.target).parent().parent().remove();
-    if ($(".terminal.ui-draggable").length == 0) {
-      setTimeout(() => {new FTerminal();}, 500);
-    }
-  })
-  $("body").on("mousedown", ".terminal.ui-draggable", (e) => {
-    const $this = $(e.target).closest('.terminal.ui-draggable');
-    if ($this.css("z-index") == highestIndex + 1) {
-      return
-    }
-    $(".focused").removeClass("focused");
-    $this.addClass("focused");
-    $('.terminal[style*=z-index]').each((i, element) => {
-      const index = $(element).css("z-index") - 1;
-      if (index > highestIndex) {
-        highestIndex = index;
-      }
-      if (index === 0) {
-        $(element).css("z-index", "auto");
-      } else {
-        $(element).css("z-index", index);
-      }
-    })
-    $this.css("z-index", highestIndex + 1);
-  })
-})

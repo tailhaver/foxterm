@@ -3,20 +3,22 @@
 // https://github.com/tailhaver
 
 import {CommandError} from "./errors.js"
+import MarkdownDisplay from "./markdown.js";
+import WindowManager from "./windowManager.js"
 
 function generateUsage(command) {
   if (!command instanceof Command) {
     throw new Error("generateUsage command argument must be based on Command!");
   }
 
-  let flags = command.flags.map((e) => {
+  let flags = Object.values(command.flags).map((e) => {
     return `[${e.flags.join("|")}]`;
   });
-  let kwparams = command.kwparams.map((e) => {
+  let kwparams = Object.values(command.kwparams).map((e) => {
     return `${e.required ? "" : "[" }${e.kwparams.join("|")} ${e.argName}${e.required ? "" : "]" }`;
   });
-  let positional = command.strings.map((e) => {
-    return `${e.required ? "" : "[" }${e.name}${e.nargs !== 0 && e.nargs !== 1 ? "..." : ""}${e.required ? "" : "]" }`;
+  let positional = Object.values(command.strings).map((e, i) => {
+    return `${e.required ? "" : "[" }${Object.keys(command.strings)[i]}${e.nargs !== 0 && e.nargs !== 1 ? "..." : ""}${e.required ? "" : "]" }`;
   });
   return [command.name, kwparams.join(" "), flags.join(" "), positional.join(" ")].filter(e => e).join(" ");
 }
@@ -73,22 +75,22 @@ export class HelpCommand extends Command {
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (!params.command) {
+    if (!params.strings.command) {
       this.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
       return
     }
     let command = null;
-    if (Object.keys(term.commands).includes(params.command)) {
-      command = term.commands[params.command];
-    } else if (Object.keys(term.aliases).includes(params.command)) {
-      command = term.commands[term.aliases[params.command]];
+    if (Object.keys(term.commands).includes(params.strings.command)) {
+      command = term.commands[params.strings.command];
+    } else if (Object.keys(term.aliases).includes(params.strings.command)) {
+      command = term.commands[term.aliases[params.strings.command]];
     }
     if (command == null) {
       this.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
       return
     }
     if (command.description.length == 0 && command.help.length == 0) {
-      this.write(`-foxterm: help: no topics match '${params.command}'.`);
+      this.write(`-foxterm: help: no topics match '${params.strings.command}'.`);
       return
     }
     this.write(`${command.name}: ${generateUsage(command)}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
@@ -225,32 +227,55 @@ export class ClearCommand extends Command {
 
 export class OpenCommand extends Command {
   static name = "open";
-  static description = "Open one of my socials in a new tab";
+  static description = "Open a file in a new window";
   static strings = {
-    page: {
+    file: {
       nargs: 1,
-      help: "One of 'twitter', 'twt', 'x', 'github', 'git', or 'gh'.",
+      help: "File to open",
       required: true
     }
   }
+  static async = true;
   constructor(params, term, callback) {
     super(params, term, callback);
   }
   exec() {
     var [term, params] = [this.term, this.params];
-    if (!params.strings.page) {
+    if (!params.strings.file) {
       this.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
-      return false;
-    }
-    if (![params.strings.page].some(s => ["git", "github", "gh", "twitter", "twt", "x"].includes(s))) {
-      this.write(`open: invalid option ${params.strings.page}\r\nTry 'help open' for more information\r\n`);
+      this.callbackFn(...this.callbackArgs);
       return false
     }
-    if ([params.strings.page].some(s => ["git", "github", "gh"].includes(s))) {
-      window.open("https://github.com/tailhaver", "_blank");
-      return
-    }
-    window.open("https://twitter.com/transfoxes", "_blank");
+    $.ajax({
+      url: 'cat',
+      data: {cwd: term.dir, path: params.strings.file},
+      type: 'GET',
+      statusCode: {
+        400: () => {
+          this.write("open: invalid parameters.\r\nTry 'help open' for more information.\r\n");
+        },
+        403: () => {
+          this.write(`-foxterm: open: accessing parent directories is currently disabled for security reasons.\r\n`);
+        },
+        404: () => {
+          this.write(`open: ${params.strings.file}: No such file!\r\n`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([400, 403, 404].some(s => s === request.status)) { return }
+        this.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+      },
+      success: (data) => {
+        const uuid = crypto.randomUUID();
+        WindowManager[uuid] = new MarkdownDisplay();
+        WindowManager[uuid].setText(data.join("\n"));
+        WindowManager[uuid].window.setTitle(params.strings.file)
+        WindowManager[uuid].window.self.trigger("mousedown");
+      }
+    }).always(() => {
+      this.callbackFn(...this.callbackArgs);
+      this.term.lock = false;
+    });
   }
 }
 
@@ -312,7 +337,13 @@ export class LsCommand extends Command {
         this.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
-        Object.entries(data).forEach((e) => {
+        let entries = Object.entries(data);
+        entries.sort((a, b) => {
+          if (a[1].isDir && !b[1].isDir) { return -1 }
+          if (!a[1].isDir && b[1].isDir) { return 1 }
+          return a[0].toLowerCase().localeCompare(b[0].toLowerCase());
+        })
+        entries.forEach((e) => {
           if (e.length != 2) {
             this.write(`${e[0]}\r\n`);
             return
