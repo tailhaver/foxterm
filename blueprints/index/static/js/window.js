@@ -1,6 +1,7 @@
 export default class Window {
   constructor(pos = [24, 24], size = [738, 457], resizeCallback = () => {return}) {
-    this.title = "abc"
+    this.title = "";
+    this.id = null;
     this.self = $("<div>", {"class": "window"})
       .append(
         $("<div>", {"class": "titlebar"})
@@ -41,7 +42,10 @@ export default class Window {
       this.self.css("top", windowHeight - 54);
     }
   }
-  updateTitle(title) {
+  setTitle(title) {
     this.self.find(".title").text(title);
+  }
+  setId(id) {
+    this.self.attr("window-id", id);
   }
 }

@@ -43,23 +43,24 @@ if (width >= 1280) {
     ];
 }
 
-const t1 = new FTerminal(positions[0], sizes[0]);
-const t2 = new FTerminal(positions[1], sizes[1]);
-const t3 = new FTerminal(positions[2], sizes[2]);
 
-t1.sendCommand("fox", false);
-t2.sendCommand("cat aside.txt", true, false); // i miss my kwargs
-t2.sendCommand("cat about.txt");
+WindowManager.t1 = new FTerminal(positions[0], sizes[0]);
+WindowManager.t2 = new FTerminal(positions[1], sizes[1]);
+WindowManager.t3 = new FTerminal(positions[2], sizes[2]);
+
+WindowManager.t1.sendCommand("fox", false);
+WindowManager.t2.sendCommand("cat aside.txt", true, false); // i miss my kwargs
+WindowManager.t2.sendCommand("cat about.txt");
 // hacky fix to display text
 setTimeout(() => {
-    t3.reset();
-    t3.write(`foxterm 0.3.0\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${t3.homeText}`);
-    t3.sendCommand("help");
+    WindowManager.t3.reset();
+    WindowManager.t3.write(`foxterm 0.4.0\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${WindowManager.t3.homeText}`);
+    WindowManager.t3.sendCommand("help");
 }, 0)
 
 $(window).on("resize", (e) => {
     if (e.target !== window) { return }
-    [t1, t2, t3].forEach((e) => {
+    WindowManager.forEach((e) => {
         e.window.lockToWindow();
     })
 })
