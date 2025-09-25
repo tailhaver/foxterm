@@ -1,6 +1,6 @@
 # Foxterm
 
-A full-stack website featuring custom [xterm.js](https://xtermjs.org/)-based terminals for the user to interact with.
+A full-stack website featuring multiple custom windows, such as [xterm.js](https://xtermjs.org/)-based terminals or markdown views, for the user to interact with.
 
 ## Quick start
 
@@ -35,10 +35,9 @@ uv run __init__.py
  - `cd`
  - `ls`
  - `pwd`
+ - `open` – Open a file in a markdown window
 
  - `fox` – Display an ASCII version of the FluentUI fox emoji
 
  - `github` – Display a hyperlink to [my] GitHub page
  - `twitter` – Display a hyperlink to [my] Twitter page
- - `open` – Open one of my social pages in a new tab\
- Available arguments: `github`, `git`, `gh`, `twitter`, `twt`, `x`.
