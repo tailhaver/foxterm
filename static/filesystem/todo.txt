@@ -1,6 +1,6 @@
 oh so youre nosy huh. oh i get it. no its fine its whatever i dont care. sure just read my todo list its fine yeah okay
 - [ ] add 401, 403, and 404 pages
-- [ ] add proper argument parsing with quote detection
+- [*] add proper argument parsing with quote detection
 - [ ] port over old blueprints from my legacy website
 - [ ] add github auth (requirement for images and letterbox)
 - [ ] add babel for translations
@@ -11,5 +11,5 @@ oh so youre nosy huh. oh i get it. no its fine its whatever i dont care. sure ju
 - [ ] add neofetch lol
 
 fever dreams (hopeful, but probably not)
-- [ ] add other window types than just a terminal
+- [*] add other window types than just a terminal
 - [ ] add wasm support. i wanna put clangen on this shit

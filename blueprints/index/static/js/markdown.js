@@ -1,6 +1,7 @@
 import Window from "./window.js"
 
 var converter = new showdown.Converter()
+showdown.setFlavor('github');
 
 export default class MarkdownDisplay {
   constructor(pos = [24, 24], size = [738, 457]) {
