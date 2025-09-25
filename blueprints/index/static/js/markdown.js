@@ -14,6 +14,8 @@ export default class MarkdownDisplay {
   }
   setText(text) {
     this.text = text;
+    const osc8ToMD = new RegExp(/]8;;(.+?)\\(.+?)]8;;\\/g);
+    this.text = this.text.replace(osc8ToMD, "[$2]($1)");
     $(this.window.body).html(converter.makeHtml(this.text));
   }
 }
