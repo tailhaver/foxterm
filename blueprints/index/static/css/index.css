@@ -68,12 +68,30 @@ body {
     height: 32px;
     background-color: #221f24;
     border-radius: 4px 4px 0 0;
-    display: flex;
-    justify-content: right;
-    flex: 0 0 32px;
+    display: grid;
+    grid-template-columns: 1fr 32px;
+    grid-template-rows: 1fr;
+    /* justify-content: right;
+    flex: 0 0 32px; */
     border-top: var(--border);
     border-left: var(--border);
     border-right: var(--border);
+}
+
+p {
+    margin: 0;
+}
+
+.focused .title {
+    color: #eaeaea !important;
+}
+
+.titlebar > .title {
+    justify-self: center;
+    align-self: center;
+    grid-area: 1 / 1 / 2 / 3;
+    color: #9c9c9c;
+    cursor: default;
 }
 
 .titlebar > button.close {
@@ -81,6 +99,7 @@ body {
     border: none;
     border-radius: 0 2px 0 0;
     background-color: transparent;
+    grid-area: 1 / 2 / 2 / 3;
 }
 .titlebar > button.close:hover {
     background-color: #DB3B21;

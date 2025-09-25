@@ -60,6 +60,6 @@ setTimeout(() => {
 $(window).on("resize", (e) => {
     if (e.target !== window) { return }
     [t1, t2, t3].forEach((e) => {
-        e.lockToWindow();
+        e.window.lockToWindow();
     })
 })
