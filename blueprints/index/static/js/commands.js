@@ -15,8 +15,8 @@ function generateUsage(command) {
   let kwparams = command.kwparams.map((e) => {
     return `${e.required ? "" : "[" }${e.kwparams.join("|")} ${e.argName}${e.required ? "" : "]" }`;
   });
-  let positional = command.strings.map((e) => {
-    return `${e.required ? "" : "[" }${e.name}${e.nargs !== 0 && e.nargs !== 1 ? "..." : ""}${e.required ? "" : "]" }`;
+  let positional = Object.values(command.strings).map((e, i) => {
+    return `${e.required ? "" : "[" }${Object.keys(command.strings)[i]}${e.nargs !== 0 && e.nargs !== 1 ? "..." : ""}${e.required ? "" : "]" }`;
   });
   return [command.name, kwparams.join(" "), flags.join(" "), positional.join(" ")].filter(e => e).join(" ");
 }
@@ -88,7 +88,7 @@ export class HelpCommand extends Command {
       return
     }
     if (command.description.length == 0 && command.help.length == 0) {
-      this.write(`-foxterm: help: no topics match '${params.command}'.`);
+      this.write(`-foxterm: help: no topics match '${params.strings.command}'.`);
       return
     }
     this.write(`${command.name}: ${generateUsage(command)}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
