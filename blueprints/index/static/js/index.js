@@ -25,7 +25,7 @@ if (width >= 1280) {
     stdwidth = 376;
     stdheight = 428;
     left = (width - stdwidth * 3 - 8) / 2;
-    top = Math.max(54, (height - stdheight * 2 - 8) / 2);
+    top = Math.max(32, (height - stdheight * 2 - 8) / 2);
     positions = [
         [left, top], [left, top + stdheight + 8], [left + stdwidth + 8, top]
     ];
@@ -36,7 +36,7 @@ if (width >= 1280) {
     stdwidth = 360;
     stdheight = 404;
     left = 54;
-    top = 54;
+    top = Math.max(32, (height - stdheight * 2 - 8) / 2);
     positions = [
         [left, top], [left, top + stdheight + 8], [left + stdwidth + 8, top]
     ];
@@ -44,6 +44,8 @@ if (width >= 1280) {
         [stdwidth, stdheight], [stdwidth, height - top * 2 - stdheight - 8], [width - left * 2 - stdwidth - 8, height - top * 2]
     ];
 }
+
+console.log(height, height - top * 2 - stdheight - 8);
 
 
 WindowManager.t1 = new FTerminal(positions[0], sizes[0]);

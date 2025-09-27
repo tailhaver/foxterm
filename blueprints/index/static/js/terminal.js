@@ -47,7 +47,9 @@ export default class FTerminal {
         background: "#2e2e2e",
         cursor: "#7f7f7f"
       },
-      convertEol: true
+      convertEol: true,
+      fontSize: 15,
+      fontFamily: '"Caskaydia Mono", "Consolas", "Courier New", monospace'
     });
 
     this.window = new Window(pos, size);
