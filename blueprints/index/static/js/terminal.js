@@ -47,7 +47,9 @@ export default class FTerminal {
         background: "#2e2e2e",
         cursor: "#7f7f7f"
       },
-      convertEol: true
+      convertEol: true,
+      fontFamily: '"Caskaydia Mono"',
+      letterSpacing: 0
     });
 
     this.window = new Window(pos, size);
@@ -81,6 +83,8 @@ export default class FTerminal {
     this.lock = false;
     this.currentCommand = null;
     this.commandQueue = []
+
+    setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 0)
   };
 
   #initCommands() {
