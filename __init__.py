@@ -14,11 +14,11 @@ class ASGIMiddleware:
     async def inner(self, scope):
         if scope["type"] != "http": return scope
         headers = scope.get("headers", [])
-        host = (list(filter(lambda e: e[0] == "host", headers)) or [None])[0]
+        host = (list(filter(lambda e: e[0] == b"host", headers)) or [None])[0]
         if host is None or len(host) != 2: return scope
-        if host[1].startswith("dev."):
+        if host[1].decode().startswith("dev."):
             index = headers.index(host)
-            host[1] = host[1].replace("dev.", "")
+            host = (host[0], host[1].decode().replace("dev.", "").encode())
             headers[index] = host
             scope["headers"] = headers
         return scope
