@@ -1,3 +1,4 @@
+import os
 import re
 from quart import Quart
 from quart_cors import cors
@@ -31,8 +32,14 @@ async def static(location=None, filename=None):
 
 app.jinja_env.globals.update(static=static)
 
+if os.path.exists(".git/HEAD"):
+    with open(".git/HEAD") as fp:
+        is_dev = "dev" in fp.readline()
+else:
+    is_dev = False
+
 if __name__ == "__main__":
     if app.config['DEBUG']:
         app.run(port=5000)
     else:
-        app.run(host="0.0.0.0", port=80)
+        app.run(host="0.0.0.0", port=80 if not is_dev else 1080)
