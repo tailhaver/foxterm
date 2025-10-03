@@ -34,6 +34,7 @@ app.jinja_env.globals.update(static=static)
 
 @app.before_request
 def before_request():
+    app.logger.info(request)
     if 'dev' in request.url:
         request.url.replace("dev.", "")
 
