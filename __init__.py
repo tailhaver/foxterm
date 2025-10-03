@@ -1,6 +1,6 @@
 import os
 import re
-from quart import Quart
+from quart import Quart, request
 from quart_cors import cors
 
 from logging.config import dictConfig
@@ -31,6 +31,11 @@ async def static(location=None, filename=None):
     return url_for('static', filename=filename)
 
 app.jinja_env.globals.update(static=static)
+
+@app.before_request
+def before_request():
+    if 'dev' in request.url:
+        request.url.replace("dev.", "")
 
 if os.path.exists(".git/HEAD"):
     with open(".git/HEAD") as fp:
