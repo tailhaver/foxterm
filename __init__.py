@@ -32,6 +32,10 @@ async def static(location=None, filename=None):
 
 app.jinja_env.globals.update(static=static)
 
+@app.route("/", subdomain="dev")
+def dev():
+    return "abc"
+
 @app.before_request
 def before_request():
     app.logger.info(request)
