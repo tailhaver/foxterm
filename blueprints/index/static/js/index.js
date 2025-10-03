@@ -56,8 +56,19 @@ WindowManager.t2.sendCommand("cat about.txt");
 // hacky fix to display text
 setTimeout(() => {
     WindowManager.t3.reset();
-    WindowManager.t3.write(`foxterm 0.4.1\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;\r\n\r\n${WindowManager.t3.homeText}`);
-    WindowManager.t3.sendCommand("help");
+    $.ajax({
+        url: 'login-text',
+        type: 'GET',
+        error: (request, status, error) => {
+            this.write(`-foxterm: An error occurred trying to fetch data from login-text! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+        },
+        success: (data) => {
+            WindowManager.t3.write(data)
+        }
+    }).always(() => {
+        WindowManager.t3.write(`\r\n\r\n${WindowManager.t3.homeText}`)
+        WindowManager.t3.sendCommand("help");
+    })
 }, 0)
 
 $(window).on("resize", (e) => {

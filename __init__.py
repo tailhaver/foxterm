@@ -1,13 +1,16 @@
-import os
 import re
 from quart import Quart, request
 from quart_cors import cors
+from quart.logging import default_handler
 
-from logging.config import dictConfig
+from logging import getLogger
 
 import config
+from about import is_dev
 
 class ASGIMiddleware:
+    # this is my baby. she is deformed. 
+    # be nice to my baby.
     def __init__(self, app) -> None:
         self.app = app
 
@@ -31,6 +34,7 @@ app = Quart(__name__)
 app.config.from_prefixed_env('QUART')
 app.asgi_app = ASGIMiddleware(app.asgi_app)
 config_mode = "Production"
+
 if app.config['DEBUG']:
     config_mode = 'Development'
     app.logger.info("Loading Development configuration...")
@@ -53,11 +57,8 @@ async def static(location=None, filename=None):
 
 app.jinja_env.globals.update(static=static)
 
-if os.path.exists(".git/HEAD"):
-    with open(".git/HEAD") as fp:
-        is_dev = "dev" in fp.readline()
-else:
-    is_dev = False
+getLogger("hypercorn.access").disabled = True
+getLogger("hypercorn.error").disabled = True
 
 if __name__ == "__main__":
     if app.config['DEBUG']:
