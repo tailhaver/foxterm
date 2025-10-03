@@ -7,8 +7,26 @@ from logging.config import dictConfig
 
 import config
 
+class ASGIMiddleware:
+    def __init__(self, app) -> None:
+        self.app = app
+    
+    async def __call__(self, scope, recv, send):
+        if scope["type"] != "http": return
+        headers = scope.get("headers", [])
+        host = (list(filter(lambda e: e[0] == "host", headers)) or [None])[0]
+        if host is None or len(host) != 2: return
+        if host[1].startswith("dev."):
+            index = headers.index(host)
+            host[1] = host[1].replace("dev.", "")
+            headers[index] = host
+            scope["headers"] = headers
+        
+        await self.app(scope, recv, send)
+
 app = Quart(__name__)
 app.config.from_prefixed_env('QUART')
+app.asgi_app = ASGIMiddleware(app.asgi_app)
 config_mode = "Production"
 if app.config['DEBUG']:
     config_mode = 'Development'
@@ -31,16 +49,6 @@ async def static(location=None, filename=None):
     return url_for('static', filename=filename)
 
 app.jinja_env.globals.update(static=static)
-
-@app.route("/", subdomain="dev")
-def dev():
-    return "abc"
-
-@app.before_request
-def before_request():
-    app.logger.info(request)
-    if 'dev' in request.url:
-        request.url.replace("dev.", "")
 
 if os.path.exists(".git/HEAD"):
     with open(".git/HEAD") as fp:
