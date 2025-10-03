@@ -10,18 +10,21 @@ import config
 class ASGIMiddleware:
     def __init__(self, app) -> None:
         self.app = app
-    
-    async def __call__(self, scope, recv, send):
-        if scope["type"] != "http": return
+
+    async def inner(self, scope):
+        if scope["type"] != "http": return scope
         headers = scope.get("headers", [])
         host = (list(filter(lambda e: e[0] == "host", headers)) or [None])[0]
-        if host is None or len(host) != 2: return
+        if host is None or len(host) != 2: return scope
         if host[1].startswith("dev."):
             index = headers.index(host)
             host[1] = host[1].replace("dev.", "")
             headers[index] = host
             scope["headers"] = headers
-        
+        return scope
+    
+    async def __call__(self, scope, recv, send):
+        scope = await self.inner(scope)
         await self.app(scope, recv, send)
 
 app = Quart(__name__)
