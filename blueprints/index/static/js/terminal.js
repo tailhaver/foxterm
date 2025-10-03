@@ -48,10 +48,15 @@ export default class FTerminal {
         cursor: "#7f7f7f"
       },
       convertEol: true,
-      fontFamily: '"Caskaydia Mono"',
       letterSpacing: 0
     });
 
+    this.term.options.linkHandler = {
+      activate: (e, text, range) => {
+        if (e.button === 0) {window.open(text, '_blank').focus();}
+      },
+      allowNonHttpProtocols: false
+    }
     this.window = new Window(pos, size);
     this.window.setTitle("foxterm");
     // have to manually set resizing here because if i try to pass `this` into
@@ -296,6 +301,7 @@ export default class FTerminal {
         this.write("\r\n");
       }
       this.write(this.homeText);
+      this.lock = false
     }, 0);
   }
   #updateLineLength() {
