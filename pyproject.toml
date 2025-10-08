@@ -1,6 +1,6 @@
 [project]
 name = "foxes-new"
-version = "0.4.1"
+version = "0.4.3"
 description = "taggie waggie's website"
 readme = "README.md"
 requires-python = ">=3.12"

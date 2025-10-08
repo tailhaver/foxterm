@@ -1,4 +1,4 @@
-foxterm 0.4.1
+foxterm <{version}>
 powered by ]8;;https://xtermjs.org/\xterm.js]8;;\
 
 made with <3 by taggie, 2025

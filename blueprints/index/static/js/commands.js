@@ -43,9 +43,6 @@ export class Command {
     }
     this.term.lock = true;
     this.exec();
-    if (!this.async) {
-      this.term.lock = false;
-    }
   }
   exec() {
 
@@ -94,6 +91,7 @@ export class HelpCommand extends Command {
       return
     }
     this.write(`${command.name}: ${generateUsage(command)}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
+    this.term.lock = false
   }
 }
 
@@ -106,6 +104,7 @@ export class TwitterCommand extends Command {
   }
   exec() {
     this.write("my twitter: \x1b]8;;http://twitter.com/transfoxes\x1b\\@transfoxes\x1b]8;;\x1b");
+    this.term.lock = false
   }
 }
 
@@ -118,6 +117,7 @@ export class GitHubCommand extends Command {
   }
   exec() {
     this.write("my github: \x1b]8;;http://github.com/tailhaver\x1b\\@tailhaver\x1b]8;;\x1b");
+    this.term.lock = false
   }
 }
 
@@ -140,6 +140,7 @@ export class EchoCommand extends Command {
       return
     }
     this.write(params.strings.arg);
+    this.term.lock = false
   }
 }
 export class WhoAmICommand extends Command {
@@ -150,6 +151,7 @@ export class WhoAmICommand extends Command {
   exec() {
     var [term, params] = [this.term, this.params];
     this.write(term.user);
+    this.term.lock = false
   }
 }
 
@@ -209,6 +211,7 @@ export class FoxCommand extends Command {
 [0m[38;5;231m         [0m[38;5;255m [0m[38;5;254m [0m[38;5;16m,[0m[38;5;223maMMMMMMMMMMM[0m[38;5;101m([0m[38;5;254m  [0m[38;5;255m [0m[38;5;231m       [0m[38;5;231m [0m\r
 [0m[38;5;231m            [0m[38;5;255m [0m[38;5;254m  [0m[38;5;59m+[0m[38;5;144mC[0m[38;5;223mho[0m[38;5;181mm[0m[38;5;101m([0m[38;5;16m [0m[38;5;254m [0m[38;5;255m [0m[38;5;231m           [0m[38;5;231m [0m\r
 `)}
+    this.term.lock = false
   }
 }
 
@@ -222,6 +225,7 @@ export class ClearCommand extends Command {
     var [term, params] = [this.term, this.params];
     term.reset();
     this.write("\x1b[A");
+    this.term.lock = false
   }
 }
 
@@ -275,7 +279,6 @@ export class OpenCommand extends Command {
       }
     }).always(() => {
       this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
     });
   }
 }
@@ -354,7 +357,6 @@ export class LsCommand extends Command {
       }
     }).always(() => {
       this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
     });
   }
 }
@@ -406,7 +408,6 @@ export class CatCommand extends Command {
       }
     }).always(() => {
       this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
     });
   }
 }
@@ -474,7 +475,6 @@ export class CdCommand extends Command {
       }
     }).always(() => {
       this.callbackFn(...this.callbackArgs);
-      this.term.lock = false;
     });
   }
 }

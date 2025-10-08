@@ -1,6 +1,7 @@
 from quart import Blueprint, request, current_app
-import logging
 import os
+
+from about import is_dev, version
 
 blueprint = Blueprint(
     'term',
@@ -37,7 +38,12 @@ async def ls():
     logger.info(os.path.abspath(searchpath))
     files = [*os.listdir(searchpath), *links.keys()]
     return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}
-           
+
+def _replace_data(line: str):
+    if "<{version}>" in line:
+        line = line.replace("<{version}>", version)
+    return line
+
 @blueprint.route('/cat', methods=['GET'])
 async def cat():
     cwd = request.args.get("cwd")
@@ -56,6 +62,9 @@ async def cat():
         return "", 404
     with open(filepath, "r", encoding="utf-8") as fp:
         lines = fp.readlines()
+    for line in list(filter(lambda e: "<{" in e and "}>" in e, lines)):
+        index = lines.index(line)
+        lines[index] = _replace_data(line)
     return lines
     
 @blueprint.route('/cd', methods=['GET'])
@@ -77,6 +86,19 @@ async def cd():
     if not os.path.isdir(filepath):
         return "", 403
     return "", 200
+
+@blueprint.route('/login-text', methods=["GET"])
+async def login_text():
+    commit_hash = ""
+    if is_dev and os.path.exists(".git/refs/heads/dev"):
+        with open(".git/refs/heads/dev") as fp:
+            commit_hash = fp.readline().strip("\n")
+    
+    #https://github.com/tailhaver/foxterm/commit/503c04acfaf10136e901af0122274d6bf16c42ee
+    
+    return f"foxterm {version}{' dev' if is_dev else ''}" + \
+        f"{' build ]8;;https://github.com/tailhaver/foxterm/commit/' + commit_hash + "\\" + commit_hash[:7] + "]8;;\\" if commit_hash else ''}" + \
+        "\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;", 200
 
 @blueprint.before_app_serving
 def after():

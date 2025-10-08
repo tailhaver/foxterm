@@ -66,6 +66,8 @@ body {
 
 .xterm-rows > div {
     overflow: visible !important;
+    height: 17px !important;
+    line-height: 17px !important;
 }
 
 .ui-resizable {
