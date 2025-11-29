@@ -28,23 +28,16 @@ export class Command {
   static description = "";
   static aliases = [];
   static help = "";
-  static async = false;
   static kwparams = {};
   static flags = {};
   static strings = {};
-  constructor(params, term, callback = []) {
+  constructor(params, term) {
     this.params = params;
     this.term = term;
     this.running = true;
-    if (callback.length != 0) {
-      if (callback.length != 2) { throw new Error("Command callback must contain exactly 0 or 2 arguments.") }
-      this.callbackFn = callback[0].bind(term);
-      this.callbackArgs = callback[1];
-    }
-    this.term.lock = true;
-    this.exec();
+    // this.exec();
   }
-  exec() {
+  async exec() {
 
   }
   kill() {
@@ -67,14 +60,14 @@ export class HelpCommand extends Command {
     }
   }
   static help = "\tArguments:\r\n\t  COMMAND\tCommand to view the help string for";
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     if (!params.strings.command) {
       this.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
-      return
+      return Promise.resolve(null)
     }
     let command = null;
     if (Object.keys(term.commands).includes(params.strings.command)) {
@@ -84,14 +77,14 @@ export class HelpCommand extends Command {
     }
     if (command == null) {
       this.write(`help: expected 1 argument\r\nTry 'help help' for more information.`);
-      return
+      return Promise.reject()
     }
     if (command.description.length == 0 && command.help.length == 0) {
       this.write(`-foxterm: help: no topics match '${params.strings.command}'.`);
-      return
+      return Promise.reject()
     }
     this.write(`${command.name}: ${generateUsage(command)}${command.description.length > 0 ? '\r\n\t' + command.description : ''}${command.help.length > 0 ? '\r\n\r\n' + command.help : ''}`);
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 
@@ -99,12 +92,12 @@ export class TwitterCommand extends Command {
   static name = "twitter";
   static description = "Display a link to my Twitter profile.";
   static aliases = ["twt", "x"];
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     this.write("my twitter: \x1b]8;;http://twitter.com/transfoxes\x1b\\@transfoxes\x1b]8;;\x1b");
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 
@@ -112,12 +105,12 @@ export class GitHubCommand extends Command {
   static name = "github";
   static description = "Display a link to my GitHub profile.";
   static aliases = ["git", "gh"];
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     this.write("my github: \x1b]8;;http://github.com/tailhaver\x1b\\@tailhaver\x1b]8;;\x1b");
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 
@@ -131,27 +124,27 @@ export class EchoCommand extends Command {
       required: true
     }
   }
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     if (!params.strings.arg) {
       return
     }
     this.write(params.strings.arg);
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 export class WhoAmICommand extends Command {
   static name = "whoami";
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     this.write(term.user);
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 
@@ -165,10 +158,10 @@ export class FoxCommand extends Command {
       help: ""
     }
   }
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     if (params.flags.grayscale) {
       this.write(`[0m[38;5;231m        [0m[38;5;232m,[0m[38;5;245mx[0m[38;5;241m<-[0m[38;5;249mv[0m[38;5;231m          [0m[38;5;241m1[0m[38;5;245m)[0m[38;5;241m<[[0m[38;5;245mf[0m[38;5;231m        [0m \r
@@ -211,21 +204,21 @@ export class FoxCommand extends Command {
 [0m[38;5;231m         [0m[38;5;255m [0m[38;5;254m [0m[38;5;16m,[0m[38;5;223maMMMMMMMMMMM[0m[38;5;101m([0m[38;5;254m  [0m[38;5;255m [0m[38;5;231m       [0m[38;5;231m [0m\r
 [0m[38;5;231m            [0m[38;5;255m [0m[38;5;254m  [0m[38;5;59m+[0m[38;5;144mC[0m[38;5;223mho[0m[38;5;181mm[0m[38;5;101m([0m[38;5;16m [0m[38;5;254m [0m[38;5;255m [0m[38;5;231m           [0m[38;5;231m [0m\r
 `)}
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 
 export class ClearCommand extends Command {
   static name = "clear";
   static aliases = ["cls"];
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     term.reset();
     this.write("\x1b[A");
-    this.term.lock = false
+    return Promise.resolve(null)
   }
 }
 
@@ -239,18 +232,16 @@ export class OpenCommand extends Command {
       required: true
     }
   }
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     if (!params.strings.file) {
       this.write(`open: expected 1 argument\r\nTry 'help open' for more information.\r\n`);
-      this.callbackFn(...this.callbackArgs);
-      return false
+      return Promise.reject()
     }
-    $.ajax({
+    return $.ajax({
       url: 'cat',
       data: {cwd: term.dir, path: params.strings.file},
       type: 'GET',
@@ -267,7 +258,7 @@ export class OpenCommand extends Command {
       },
       error: (request, status, error) => {
         if ([400, 403, 404].some(s => s === request.status)) { return }
-        this.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}`);
+        this.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
         const uuid = crypto.randomUUID();
@@ -277,9 +268,7 @@ export class OpenCommand extends Command {
         WindowManager[uuid].window.self.trigger("mousedown");
         WindowManager[$(".focus").closest('.window.ui-draggable').attr("window-id")].term.blur();
       }
-    }).always(() => {
-      this.callbackFn(...this.callbackArgs);
-    });
+    })
   }
 }
 
@@ -287,15 +276,16 @@ export class PwdCommand extends Command {
   static name = "pwd";
   static description = "Print the name of the current working directory.";
   static aliases = ["cwd"];
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     this.write(
       term.dir.replace("~/", "/")
               .replace("~", "/")
     );
+    return Promise.resolve(null)
   }
 }
 
@@ -309,11 +299,10 @@ export class LsCommand extends Command {
       required: false
     }
   }
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec(params, term) {
+  async exec(params, term) {
     var [term, params] = [this.term, this.params];
     let body = {
       cwd: term.dir
@@ -321,7 +310,7 @@ export class LsCommand extends Command {
     if (params.strings.dir) {
       body.path = params.strings.dir;
     }
-    $.ajax({
+    return $.ajax({
       url: "ls",
       data: body,
       type: 'GET',
@@ -355,9 +344,7 @@ export class LsCommand extends Command {
           this.write(`${e[1].isDir ? "\x1B[34;42m" : "\x1B[92m"}${e[0]}\x1B[39;49m\r\n`);
         })
       }
-    }).always(() => {
-      this.callbackFn(...this.callbackArgs);
-    });
+    })
   }
 }
 
@@ -371,18 +358,16 @@ export class CatCommand extends Command {
       required: true
     }
   }
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec(params, term) {
+  async exec(params, term) {
     var [term, params] = [this.term, this.params];
     if (!params.strings.file) {
       this.write("cat: expected one argument\r\nTry 'help cat' for more information.");
-      this.callbackFn(...this.callbackArgs);
-      return false
+      return Promise.reject()
     }
-    $.ajax({
+    return $.ajax({
       url: 'cat',
       data: {cwd: term.dir, path: params.strings.file},
       type: 'GET',
@@ -406,9 +391,7 @@ export class CatCommand extends Command {
           this.write(e.replace("\n", "\r\n"))
         })
       }
-    }).always(() => {
-      this.callbackFn(...this.callbackArgs);
-    });
+    })
   }
 }
 
@@ -422,16 +405,14 @@ export class CdCommand extends Command {
       required: true
     }
   }
-  static async = true;
-  constructor(params, term, callback) {
-    super(params, term, callback);
+  constructor(params, term) {
+    super(params, term);
   }
-  exec() {
+  async exec() {
     var [term, params] = [this.term, this.params];
     if (!params.strings.dir) {
       this.write("cd: expected one argument\r\nTry 'help cd' for more information.");
-      this.callbackFn(...this.callbackArgs);
-      return false
+      return Promise.reject()
     }
     if (params.strings.dir && params.strings.dir.includes("..")) {
       let currentPath = []
@@ -447,9 +428,9 @@ export class CdCommand extends Command {
           newPath.push(e);
         }
       })
-      params.strings.dir = newPath.join("/");
+      params.strings.dir = newPath.join("/").replaceAll(/\/+/g, "/");
     }
-    $.ajax({
+    return $.ajax({
       url: 'cd',
       data: {cwd: term.dir, path: params.strings.dir},
       type: 'GET',
@@ -466,16 +447,14 @@ export class CdCommand extends Command {
         this.write(`An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
       },
       success: (data) => {
-        if (params.strings.dir == "~") {
+        if (params.strings.dir == "~" || params.strings.dir == "/") {
           term.dir = "~";
         } else {
-          term.dir = `${term.dir}/${params.strings.dir}`;
+          term.dir = `${term.dir}/${params.strings.dir}`.replaceAll(/\/+/g, "/");
         }
         term.regenHomeText();
       }
-    }).always(() => {
-      this.callbackFn(...this.callbackArgs);
-    });
+    })
   }
 }
 
