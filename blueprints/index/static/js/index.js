@@ -53,7 +53,7 @@ WindowManager.t3 = new FTerminal(positions[2], sizes[2]);
 WindowManager.t1.sendCommand("fox", false);
 WindowManager.t2.sendCommand("cat aside.txt", true, false); // i miss my kwargs
 WindowManager.t2.sendCommand("cat about.txt");
-// hacky fix to display text
+// // hacky fix to display text
 setTimeout(() => {
     WindowManager.t3.reset();
     $.ajax({
