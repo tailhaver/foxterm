@@ -88,7 +88,7 @@ export default class FTerminal {
     this.commandQueue = [];
     this.queueActive = false;
 
-    setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 0)
+    setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 50)
 
   }
   #initCommands() {
