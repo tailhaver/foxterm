@@ -186,6 +186,8 @@ export default class FTerminal {
       case '\x1b[15;5~': // ctrl f5
         window.location.reload(true); // only works on firefox i think
         break
+      case '\x0C': // ctrl+L / form feed
+        break
       default:
         this.write(e);
         if (this.currentLine.length > (this.cursorX - this.homeLength)) {
