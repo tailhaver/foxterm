@@ -320,7 +320,7 @@ export default class FTerminal {
     }
     var [selectedCommand, command, params] = this.#parseCommand(this.commandQueue.shift());
     if (!manual) { this.write(`${command} ${prettifyParams(selectedCommand, params)}\r\n`); }
-    await this.#runCommand(selectedCommand, command, params).then((a) => { this.processQueue(manual) });
+    await this.#runCommand(selectedCommand, command, params).then((a) => { this.processQueue(manual) }, (a) => { this.processQueue(manual) });
   }
   sendCommand(input, queue=true, processQueue=true) {
     if (queue) {
