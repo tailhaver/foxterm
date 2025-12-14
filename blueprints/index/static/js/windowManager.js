@@ -1,5 +1,3 @@
-import FTerminal from "./terminal.js"
-
 class _WindowManager {
   static _windows = {};
   static forEach(fn) {
@@ -31,12 +29,6 @@ let WindowManager = new Proxy(_WindowManager, proxyHandler);
 
 $(() => {
   var highestIndex = 5;
-  $("body").on("click tap", ".close", (e) => {
-    delete WindowManager[$(e.target).closest('.window.ui-draggable').attr("window-id")];
-    if ($(".window.ui-draggable:has(.xterm)").length == 0) {
-      setTimeout(() => {WindowManager.t1 = new FTerminal();}, 500);
-    }
-  })
   $("body").on("mousedown", ".window.ui-draggable", (e) => {
     const $this = $(e.target).closest('.window.ui-draggable');
     if ($this.css("z-index") == highestIndex + 1) {

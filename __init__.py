@@ -1,5 +1,5 @@
 import re
-from quart import Quart, request
+from quart import Quart, request, render_template
 from quart_cors import cors
 from quart.logging import default_handler
 
@@ -57,11 +57,14 @@ async def static(location=None, filename=None):
 
 app.jinja_env.globals.update(static=static)
 
-getLogger("hypercorn.access").disabled = True
-getLogger("hypercorn.error").disabled = True
+@app.errorhandler(404)
+async def http_404(e):
+    return await render_template('404.jinja', page=request.host), 404
 
 if __name__ == "__main__":
     if app.config['DEBUG']:
         app.run(port=5000)
     else:
+        getLogger("hypercorn.access").disabled = True
+        getLogger("hypercorn.error").disabled = True
         app.run(host="0.0.0.0", port=80 if not is_dev else 1080)

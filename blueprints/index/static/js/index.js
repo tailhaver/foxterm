@@ -73,6 +73,15 @@ setTimeout(() => {
     })
 }, 0)
 
+$(() => {
+  $("body").on("click tap", ".close", (e) => {
+    delete WindowManager[$(e.target).closest('.window.ui-draggable').attr("window-id")];
+    if ($(".window.ui-draggable:has(.xterm)").length == 0) {
+      setTimeout(() => {WindowManager.t1 = new FTerminal();}, 500);
+    }
+  })
+})
+
 $(window).on("resize", (e) => {
     if (e.target !== window) { return }
     WindowManager.forEach((e) => {
