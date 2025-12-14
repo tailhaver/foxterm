@@ -3,4 +3,4 @@ powered by ]8;;https://xtermjs.org/\xterm.js]8;;\
 
 made with <3 by taggie, 2025
 proudly made without ai assistance
-]8;;https://github.com/tailhaver/foxterm\the entire code is public!]8;;\
+]8;;https://github.com/tailhaver/foxterm\the source code is public!]8;;\

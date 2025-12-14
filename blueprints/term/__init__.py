@@ -1,4 +1,5 @@
 from quart import Blueprint, request, current_app
+from quart_auth import current_user
 import os
 
 from about import is_dev, version
@@ -90,15 +91,17 @@ async def cd():
 @blueprint.route('/login-text', methods=["GET"])
 async def login_text():
     commit_hash = ""
-    if is_dev and os.path.exists(".git/refs/heads/dev"):
+    if os.path.exists(".git/refs/heads/dev"):
         with open(".git/refs/heads/dev") as fp:
             commit_hash = fp.readline().strip("\n")
-    
-    #https://github.com/tailhaver/foxterm/commit/503c04acfaf10136e901af0122274d6bf16c42ee
-    
+        
     return f"foxterm {version}{' dev' if is_dev else ''}" + \
         f"{' build ]8;;https://github.com/tailhaver/foxterm/commit/' + commit_hash + "\\" + commit_hash[:7] + "]8;;\\" if commit_hash else ''}" + \
         "\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;", 200
+
+@blueprint.route('/current-user', methods=["GET"])
+async def get_current_user(): 
+    return {"login": await current_user.login}
 
 @blueprint.before_app_serving
 def after():

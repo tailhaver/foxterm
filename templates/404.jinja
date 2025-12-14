@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta property="og:url" content="{{ request.url }}">
+    <meta property="og:title" content="yip.cat{{dev}}">
+    <meta property="og:description" content="404!! not found!">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="{{ static(filename='images/fox.png') }}">
+    <meta content="#E47335" data-react-helmet="true" name="theme-color">
+    <title translate="no">404!! - yip yap</title>
+    <link rel="icon" type="image/svg+xml" href="{{ static(filename='svgs/favicon.svg') }}">
+
+    <link rel="stylesheet" href="{{ static('index', filename='css/index.css') }}">
+    <link rel="stylesheet" href="{{ static(filename='css/404.css') }}">
+    <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
+</head>
+<body>
+    <div class="window ui-draggable focused">
+        <div class="titlebar">
+            <p class="title">404!</p>
+            <button class="close">x</button>
+        </div>
+        <div class="body">
+            <div class="img-wrapper">
+                <h1>404!!</h1>
+                <img src="{{ static(filename='images/404.jpeg') }}" />
+                <p>what are you looking for? - please, <a href="{{url_for('index.index')}}">go back</a></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

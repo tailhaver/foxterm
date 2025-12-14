@@ -50,7 +50,6 @@ export default class FTerminal {
       convertEol: true,
       letterSpacing: 0
     });
-
     this.term.options.linkHandler = {
       activate: (e, text, range) => {
         if (e.button === 0) {window.open(text, '_blank').focus();}
@@ -70,6 +69,8 @@ export default class FTerminal {
         this.#resizeTerminal();
       }
     });
+
+    this.lock = false;
     this.cursorX = 0;
     this.currentLine = "";
     this.lineHistory = [];
@@ -79,19 +80,17 @@ export default class FTerminal {
     this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;
     this.homeLength = this.homeText.replace(re, "").length + 1;
     this.lineLength = this.homeLength + this.currentLine.length;
+
     this.#initCommands();
     this.term.open(this.window.body);
-    this.write(this.homeText);
-    this.cursorX = this.lineLength;
+    this.writeHomeText();
     this.term.onData(e => {this.#handleData(e)});
+    this.commandQueue = [];
+    this.queueActive = false;
 
-    this.lock = false;
-    this.currentCommand = null;
-    this.commandQueue = []
+    setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 50)
 
-    setTimeout(() => {window.dispatchEvent(new Event('resize'));}, 0)
-  };
-
+  }
   #initCommands() {
     this.commands = Object.fromEntries(
       commands.map((e) => {return [e.name, e]}) // automatically create command list from commands.js
@@ -106,15 +105,34 @@ export default class FTerminal {
     this.aliases = _; 
     _ = null;
   }
+  #resizeTerminal() {
+    this.term.resize(Math.floor($(this.window.self).innerWidth() / 9) - 4, Math.floor(($(this.window.self).innerHeight() - $($(this.window.self).children()[0]).innerHeight() - 16) / 17));
+  }
+  reset() {
+    this.term.reset();
+  }
+  write(data) {
+    this.term.write(data ? data : "")
+  }
+  writeHomeText() {
+    this.write(this.homeText);
+    this.lineLength = this.homeLength;
+    this.cursorX = this.lineLength;
+  }
+  #updateLineLength() {
+    this.lineLength = this.homeLength + this.currentLine.length;
+  }
   #handleData(e) {
     switch (e) {
       case '\r':
         if (this.lineHistory.includes(this.currentLine)
             & this.currentLineInHistory != 0) {
-          this.lineHistory.splice(this.currentLineInHistory - 1);
+          this.lineHistory.splice(this.lineHistory.length - this.currentLineInHistory);
           }
         this.currentLineInHistory = 0;
-        this.lineHistory.push(this.currentLine);
+        if (this.currentLine != "") {
+          this.lineHistory.push(this.currentLine);
+        }
         this.write("\n");
         this.#handleCommand(this.currentLine);
         this.currentLine = '';
@@ -126,7 +144,7 @@ export default class FTerminal {
           this.currentLine = this.currentLine.slice(0, -1);
           this.write("\b \b");
         };
-        break
+        break;
       case '\x1b[A': // up
         if (this.lineHistory.length > this.currentLineInHistory) {
           this.write("\x1b[M");
@@ -170,82 +188,71 @@ export default class FTerminal {
       case '\x1b[15;5~': // ctrl f5
         window.location.reload(true); // only works on firefox i think
         break
-      case '\x03': // ctrl-c / sigint
-        if (this.currentCommand !== null) {
-          this.currentCommand.kill();
-          this.currentCommand = null;
-        }
-        this.write('^C\n');
-        this.write(this.homeText);
-        this.currentLine = '';
-        this.#updateLineLength();
-        this.cursorX = this.homeLength;
+      case '\x0C': // ctrl+L / form feed
         break
       default:
-        this.cursorX += 1;
-        this.currentLine += e;
         this.write(e);
+        if (this.currentLine.length > (this.cursorX - this.homeLength)) {
+          this.currentLine = this.currentLine.substring(0, this.cursorX - this.homeLength) + e + this.currentLine.substring(this.cursorX - this.homeLength + 1)
+        } else {
+          this.currentLine += e;
+        }
+        this.cursorX++;
     }
     this.#updateLineLength();
   }
-  processQueue() {
-    let [selectedCommand, command, params] = [null, null, null];
-    const fn = () => {
-      if (this.commandQueue == null || this.commandQueue.length == 0) {
-        return;
-      }
-      [selectedCommand, command, params] = this.commandQueue.shift();
-      this.write(`${command} ${prettifyParams(selectedCommand, params)}\r\n`);
-      this.#runCommand(selectedCommand, command, params);
-    };
-    var queueInterval = setInterval(() => {
-      if (this.commandQueue.length == 0) { clearInterval(queueInterval) }
-      if ( this.lock ) { return }
-      fn();
-    }, 125)
+  #handleCommand(input) {
+    if (input == '') {
+      this.writeHomeText();
+      return
+    }
+    // this.sendCommand(input, true, !this.queueActive);
+    this.commandQueue.push(input);
+    if (!this.queueActive) {
+      this.processQueue(true);
+    }
+    // const [selectedCommand, command, params] = this.#parseCommand(input);
+    // if (selectedCommand === null) {
+    //   return;
+    // }
+    // this.#runCommand(selectedCommand, command, params)
   }
   #parseCommand(input) {
     const args = input.split(' ');
     const command = args[0];
     let selectedCommand = null;
     if (command.length == 0) {
-      this.write(this.homeText);
-      return
+      this.writeHomeText();
+      return [null, null, null]
     }
     if (command in this.commands) {
       selectedCommand = this.commands[command];
     } else if (command in this.aliases) {
       selectedCommand = this.commands[this.aliases[command]] // what? the fuck?
     } else {
-      this.write(`-foxterm: ${command}: command not found`);
+      this.write(`-foxterm: ${command}: command not found\r\n`);
+      this.writeHomeText();
+      return [null, null, null]
     }
     const params = this.#parseArgs(selectedCommand, input);
     return [selectedCommand, command, params]
   }
-  #runCommand(selectedCommand, command, params) {
+  async #runCommand(selectedCommand, command, params) {
+    // this.lock = true;
     if (selectedCommand != null) {
-      let callback = [] // handling for properly finishing async functions
-      if (selectedCommand.async) { 
-        callback = [this.postCommandHandling, [command]]
-      }
       try {
-        this.currentCommand = new selectedCommand(params, this, callback);
+        this.currentCommand = new selectedCommand(params, this)
+        return this.currentCommand.exec()
+          .then(() => {this.postCommandHandling(command)}, () => {this.postCommandHandling(command)})
+          .then(() => {return null})
       } catch (err) {
-        if (callback.length != 0) {callback[0](...callback[1])}
         if (typeof err !== CommandError) {
           throw err
         }
       }
-      if (!selectedCommand.async) { // sick, twisted, evil.
-        this.postCommandHandling(command);
-      }
-      return;
-    } 
-    this.postCommandHandling(command);
-  }
-  #handleCommand(input) {
-    const [selectedCommand, command, params] = this.#parseCommand(input);
-    this.#runCommand(selectedCommand, command, params)
+    } else {
+      return Promise.reject()
+    }
   }
   #parseArgs(selectedCommand, string) {
     // more ugly black magic fuckery
@@ -277,7 +284,6 @@ export default class FTerminal {
       arg = match && match.length > 0 ? true : false;
       return [e[0], arg];
     }));
-
     const filteredString = string.replaceAll(kwparamsRe, "").replaceAll(flagsRe, "").replaceAll(/\s+/g, " ");
     const strings = Object.fromEntries(Object.entries(selectedCommand.strings).map((e) => {
       let arg = e[1];
@@ -296,31 +302,33 @@ export default class FTerminal {
     }
   }
   postCommandHandling(command) {
-    setTimeout(() => {
+    return new Promise((resolve) => {
       if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
         this.write("\r\n");
       }
-      this.write(this.homeText);
-      this.lock = false
-    }, 0);
+      this.writeHomeText();
+      this.lock = false;
+      resolve()
+    });
   }
-  #updateLineLength() {
-    this.lineLength = this.homeLength + this.currentLine.length;
+  regenHomeText() {
+    this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;
   }
-  write(data) {
-    this.term.write(data ? data : "");
+  async processQueue(manual=false) {
+    this.queueActive = true;
+    if (this.commandQueue == null || this.commandQueue.length == 0) {
+      this.queueActive = false;
+      return Promise.resolve(null)
+    }
+    var [selectedCommand, command, params] = this.#parseCommand(this.commandQueue.shift());
+    if (!manual) { this.write(`${command} ${prettifyParams(selectedCommand, params)}\r\n`); }
+    await this.#runCommand(selectedCommand, command, params).then((a) => { this.processQueue(manual) }, (a) => { this.processQueue(manual) });
   }
-  reset() {
-    this.term.reset();
-  }
-  #resizeTerminal() {
-    this.term.resize(Math.floor($(this.window.self).innerWidth() / 9) - 4, Math.floor(($(this.window.self).innerHeight() - $($(this.window.self).children()[0]).innerHeight() - 16) / 17));
-  }
-  sendCommand(input, queue=true, processQueue=true) { // public function for literally One Use. Yay.
-    var [selectedCommand, command, params] = this.#parseCommand(input);
+  sendCommand(input, queue=true, processQueue=true) {
     if (queue) {
-      this.commandQueue.push([selectedCommand, command, params]);
+      this.commandQueue.push(input);
     } else {
+      var [selectedCommand, command, params] = this.#parseCommand(input);
       this.write(`${command} ${prettifyParams(selectedCommand, params)}\r\n`);
       this.#runCommand(selectedCommand, command, params);
       return
@@ -329,7 +337,12 @@ export default class FTerminal {
       this.processQueue();
     }
   }
-  regenHomeText() {
-    this.homeText = `[1;92m${this.user}@taggie-server[1;0m:[1;94m${this.dir}[0m$ `;
+  updateUser(user) {
+    if (user === null) {
+      this.user = "guest";
+    } else {
+      this.user = user;
+    }
+    this.regenHomeText()
   }
 }
