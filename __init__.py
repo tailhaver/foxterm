@@ -2,11 +2,13 @@ import re
 from quart import Quart, request, render_template
 from quart_cors import cors
 from quart.logging import default_handler
+from quart_auth import QuartAuth, current_user
 
 from logging import getLogger
 
 import config
 from about import is_dev
+from auth import User
 
 class ASGIMiddleware:
     # this is my baby. she is deformed. 
@@ -42,9 +44,12 @@ else:
     app = cors(app, allow_origin=re.compile("https://*.yip.cat*"))
 app.config.from_object(f"config.{config_mode}")
 
-from blueprints import index_blueprint, term_blueprint
+auth_manager = QuartAuth(app)
+auth_manager.user_class = User
+
+from blueprints import index_blueprint, term_blueprint, github_blueprint
 for blueprint in [
-        index_blueprint, term_blueprint]:
+        index_blueprint, term_blueprint, github_blueprint]:
     app.register_blueprint(blueprint)
 
 async def static(location=None, filename=None):
@@ -56,6 +61,7 @@ async def static(location=None, filename=None):
     return url_for('static', filename=filename)
 
 app.jinja_env.globals.update(static=static)
+auth_manager.init_app(app)
 
 @app.errorhandler(404)
 async def http_404(e):

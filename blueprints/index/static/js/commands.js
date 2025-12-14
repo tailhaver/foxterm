@@ -458,8 +458,61 @@ export class CdCommand extends Command {
   }
 }
 
+export class LoginCommand extends Command {
+  static name = "login";
+  static description = "login with github";
+  constructor(params, term) {
+    super(params, term);
+  }
+  async exec() {
+    return $.ajax({
+      url: '/github/get-login-url',
+      type: 'GET',
+      statusCode: {
+        403: () => {
+          this.write(`-foxterm: login: already logged in!\r\n`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([403].some(s => s === request.status)) { return }
+        this.write(`An error occurred trying to log in! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+      },
+      success: (data) => {
+        this.write(`]8;;${data.url}\\sign in with github]8;;\ `);
+      }
+    })
+  }
+}
+
+export class LogoutCommand extends Command {
+  static name = "logout";
+  static description = "logout";
+  constructor(params, term) {
+    super(params, term);
+  }
+  async exec() {
+    return $.ajax({
+      url: '/github/logout-term',
+      type: 'GET',
+      statusCode: {
+        401: () => {
+          this.write(`-foxterm: logout: not logged in!\r\n`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([401].some(s => s === request.status)) { return }
+        this.write(`An error occurred trying to log out! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+      },
+      success: (data) => {
+        WindowManager.updateUser();
+        this.write("successfully logged out. :(");
+      }
+    })
+  }
+}
+
 export const commands = [ 
   HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, 
   FoxCommand, ClearCommand, OpenCommand, LsCommand, CatCommand, CdCommand,
-  PwdCommand
+  PwdCommand, LoginCommand, LogoutCommand
 ].sort((a, b) => {return a.name.localeCompare(b.name)});

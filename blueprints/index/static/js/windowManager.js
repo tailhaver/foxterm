@@ -1,7 +1,22 @@
 class _WindowManager {
+  static currentUser = null;
   static _windows = {};
   static forEach(fn) {
     Object.values(_WindowManager._windows).forEach(fn);
+  }
+  static updateUser(name) {
+    $.ajax({
+      url: 'current-user',
+      type: 'GET',
+      async: false,
+      error: (request, status, error) => {
+        console.error(`An error occurred trying to fetch the current user! Passing...`);
+        return null
+      },
+      success: (data) => {
+        this.forEach((e) => {e.updateUser?.(data.login)})
+      }
+    })
   }
 }
 

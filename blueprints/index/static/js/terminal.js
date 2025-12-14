@@ -335,4 +335,12 @@ export default class FTerminal {
       this.processQueue();
     }
   }
+  updateUser(user) {
+    if (user === null) {
+      this.user = "guest";
+    } else {
+      this.user = user;
+    }
+    this.regenHomeText()
+  }
 }
