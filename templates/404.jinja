@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta property="og:url" content="https://yip.cat/">
+    <meta property="og:url" content="{{ request.url }}">
     <meta property="og:title" content="yip.cat{{dev}}">
-    <meta property="og:description" content="hello :3">
+    <meta property="og:description" content="404!! not found!">
     <meta property="og:type" content="website">
     <meta property="og:image" content="{{ static(filename='images/fox.png') }}">
     <meta content="#E47335" data-react-helmet="true" name="theme-color">
@@ -15,10 +15,7 @@
 
     <link rel="stylesheet" href="{{ static('index', filename='css/index.css') }}">
     <link rel="stylesheet" href="{{ static(filename='css/404.css') }}">
-    <link rel="stylesheet" type="text/css" href="https://unpkg.com/jquery-ui@1.14.1/dist/themes/base/jquery-ui.min.css"/>
     <script src="https://unpkg.com/jquery@3.7.1/dist/jquery.min.js"></script>
-    <script src="https://unpkg.com/jquery-ui@1.14.1/dist/jquery-ui.min.js"></script> 
-    {# <script src="{{ static(filename='js/404.js') }}" defer type="module"></script> #}
 </head>
 <body>
     <div class="window ui-draggable focused">
