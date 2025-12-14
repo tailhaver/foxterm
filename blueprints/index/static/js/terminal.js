@@ -127,10 +127,12 @@ export default class FTerminal {
       case '\r':
         if (this.lineHistory.includes(this.currentLine)
             & this.currentLineInHistory != 0) {
-          this.lineHistory.splice(this.currentLineInHistory - 1);
+          this.lineHistory.splice(this.lineHistory.length - this.currentLineInHistory);
           }
         this.currentLineInHistory = 0;
-        this.lineHistory.push(this.currentLine);
+        if (this.currentLine != "") {
+          this.lineHistory.push(this.currentLine);
+        }
         this.write("\n");
         this.#handleCommand(this.currentLine);
         this.currentLine = '';
@@ -144,29 +146,29 @@ export default class FTerminal {
         };
         break;
       case '\x1b[A': // up
-        // if (this.lineHistory.length > this.currentLineInHistory) {
-        //   this.write("\x1b[M");
-        //   this.write(this.homeText);
-        //   this.currentLineInHistory += 1;
-        //   this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
-        //   this.#updateLineLength(); // force call because i need to set the x val NOWW
-        //   this.cursorX = this.lineLength;
-        //   this.write(this.currentLine);
-        // }
+        if (this.lineHistory.length > this.currentLineInHistory) {
+          this.write("\x1b[M");
+          this.write(this.homeText);
+          this.currentLineInHistory += 1;
+          this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
+          this.#updateLineLength(); // force call because i need to set the x val NOWW
+          this.cursorX = this.lineLength;
+          this.write(this.currentLine);
+        }
         break
       case '\x1b[B': // down
-        // if (this.currentLineInHistory == 0) { break }
-        // this.write(`\x1b[M`);
-        // this.write(this.homeText);
-        // this.currentLineInHistory -= 1;
-        // if (this.currentLineInHistory != 0) {
-        //   this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
-        // } else {
-        //   this.currentLine = "";
-        // };
-        // this.#updateLineLength(); // force call because i need to set the x val NOWW
-        // this.cursorX = this.lineLength;
-        // this.write(this.currentLine);
+        if (this.currentLineInHistory == 0) { break }
+        this.write(`\x1b[M`);
+        this.write(this.homeText);
+        this.currentLineInHistory -= 1;
+        if (this.currentLineInHistory != 0) {
+          this.currentLine = this.lineHistory.at(this.currentLineInHistory * -1);
+        } else {
+          this.currentLine = "";
+        };
+        this.#updateLineLength(); // force call because i need to set the x val NOWW
+        this.cursorX = this.lineLength;
+        this.write(this.currentLine);
         break
       case '\x1b[C': // forward
         if (this.cursorX < this.lineLength - 1) {
