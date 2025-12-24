@@ -1,4 +1,4 @@
-from quart import Blueprint, render_template, request
+from quart import Blueprint, render_template, send_from_directory
 from about import is_dev
 
 blueprint = Blueprint(
@@ -16,3 +16,8 @@ async def index():
 @blueprint.route('/legacy')
 async def legacy():
     return await render_template('legacy.jinja')
+
+@blueprint.route('/88x31')
+@blueprint.route('/88x31.png')
+async def badge88x31():
+    return await send_from_directory('static/images', file_name='88x31.png')
