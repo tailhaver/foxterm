@@ -1,7 +1,8 @@
 import Window from "./window.js"
 
 var converter = new showdown.Converter()
-showdown.setFlavor('github');
+converter.setFlavor('github');
+converter.setOption('openLinksInNewWindow', true);
 
 export default class MarkdownDisplay {
   constructor(pos = [24, 24], size = [738, 457]) {
