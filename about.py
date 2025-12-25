@@ -1,6 +1,6 @@
 import os
 
-version = "0.6.1"
+version = "0.6.2"
 
 if os.path.exists(".git/HEAD"):
     with open(".git/HEAD") as fp:
