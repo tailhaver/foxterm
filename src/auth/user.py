@@ -1,5 +1,6 @@
 from quart_auth import AuthUser
-from database import Session, User
+from src.database import Session, User
+
 
 class UserClass(AuthUser):
     def __init__(self, auth_id):
@@ -8,7 +9,7 @@ class UserClass(AuthUser):
         self._id = None
         self._login = None
         self._level = None
-    
+
     async def _resolve(self):
         if self._resolved:
             return
@@ -20,17 +21,17 @@ class UserClass(AuthUser):
             self._login = user_data.login
             self._level = user_data.level
             self._resolved = True
-    
+
     @property
     async def id(self):
         await self._resolve()
         return self._id
-    
+
     @property
     async def login(self):
         await self._resolve()
         return self._login
-    
+
     @property
     async def level(self):
         await self._resolve()

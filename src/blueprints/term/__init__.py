@@ -2,22 +2,21 @@ from quart import Blueprint, request, current_app
 from quart_auth import current_user
 import os
 
-from about import is_dev, version
+from src.about import is_dev, version
 
 blueprint = Blueprint(
-    'term',
+    "term",
     __name__,
-    template_folder='templates',
-    static_folder='static',
-    static_url_path='/static/term'
+    template_folder="templates",
+    static_folder="static",
+    static_url_path="/static/term",
 )
 logger = None
 
-links = {
-    "readme.md": "README.md"
-}
+links = {"readme.md": "README.md"}
 
-@blueprint.route('/ls', methods=['GET'])
+
+@blueprint.route("/ls", methods=["GET"])
 async def ls():
     cwd = request.args.get("cwd")
     path = request.args.get("path")
@@ -40,12 +39,14 @@ async def ls():
     files = [*os.listdir(searchpath), *links.keys()]
     return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}
 
+
 def _replace_data(line: str):
     if "<{version}>" in line:
         line = line.replace("<{version}>", version)
     return line
 
-@blueprint.route('/cat', methods=['GET'])
+
+@blueprint.route("/cat", methods=["GET"])
 async def cat():
     cwd = request.args.get("cwd")
     path = request.args.get("path")
@@ -67,8 +68,9 @@ async def cat():
         index = lines.index(line)
         lines[index] = _replace_data(line)
     return lines
-    
-@blueprint.route('/cd', methods=['GET'])
+
+
+@blueprint.route("/cd", methods=["GET"])
 async def cd():
     home = "static/filesystem"
     cwd = request.args.get("cwd")
@@ -88,20 +90,26 @@ async def cd():
         return "", 403
     return "", 200
 
-@blueprint.route('/login-text', methods=["GET"])
+
+@blueprint.route("/login-text", methods=["GET"])
 async def login_text():
     commit_hash = ""
     if os.path.exists(".git/refs/heads/dev"):
         with open(".git/refs/heads/dev") as fp:
             commit_hash = fp.readline().strip("\n")
-        
-    return f"foxterm {version}{' dev' if is_dev else ''}" + \
-        f"{' build ]8;;https://github.com/tailhaver/foxterm/commit/' + commit_hash + "\\" + commit_hash[:7] + "]8;;\\" if commit_hash else ''}" + \
-        "\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;", 200
 
-@blueprint.route('/current-user', methods=["GET"])
-async def get_current_user(): 
+    return (
+        f"foxterm {version}{' dev' if is_dev else ''}"
+        + f"{' build ]8;;https://github.com/tailhaver/foxterm/commit/' + commit_hash + '\\' + commit_hash[:7] + ']8;;\\' if commit_hash else ''}"
+        + "\r\npowered by ]8;;https://xtermjs.org/\\xterm.js]8;;",
+        200,
+    )
+
+
+@blueprint.route("/current-user", methods=["GET"])
+async def get_current_user():
     return {"login": await current_user.login}
+
 
 @blueprint.before_app_serving
 def after():
