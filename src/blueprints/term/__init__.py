@@ -1,8 +1,12 @@
-from quart import Blueprint, request, current_app
+from quart import Blueprint, current_app, request
 from quart_auth import current_user
 import os
 
 from src.about import is_dev, version
+from src.auth import Permissions
+from src.database import Session, User
+
+links = {"readme.md": "README.md"}
 
 blueprint = Blueprint(
     "term",
@@ -13,7 +17,10 @@ blueprint = Blueprint(
 )
 logger = None
 
-links = {"readme.md": "README.md"}
+@blueprint.before_app_serving
+def after():
+    global logger
+    logger = current_app.logger
 
 
 @blueprint.route("/ls", methods=["GET"])
@@ -110,8 +117,20 @@ async def login_text():
 async def get_current_user():
     return {"login": await current_user.login}
 
+@blueprint.route("/admin/view_users", methods=["GET"])
+async def view_users():
+    if not await current_user.has_permission(Permissions.ADMIN | Permissions.VIEW_USERS):
+        return {"success": False, "error": "You do not have permission to run this command!"}, 403
 
-@blueprint.before_app_serving
-def after():
-    global logger
-    logger = current_app.logger
+    _table = ['<table><thead><tr>']
+    _table.append('<th>ID</th><th>login</th><th>permissions</th>')
+    _table.append('</tr></thead>')
+    with Session() as db_session:
+        for user in db_session.query(User).all():
+            _table.extend([
+                '<tr>', 
+                *[f'<td>{i}</td>' for i in [user.id, user.login, user.permissions]],
+                '</tr>'
+            ])
+    _table.append('</table>')
+    return _table

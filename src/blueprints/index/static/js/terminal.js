@@ -303,7 +303,7 @@ export default class FTerminal {
   }
   postCommandHandling(command) {
     return new Promise((resolve) => {
-      if (!["clear", "cls", "open", "ls", "cd", "fox"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
+      if (!["clear", "cls", "open", "ls", "cd", "fox", "list_users"].includes(command)) { // hardcoded because im a little wah wah baby who cant code
         this.write("\r\n");
       }
       this.writeHomeText();

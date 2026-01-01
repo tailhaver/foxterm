@@ -1,4 +1,5 @@
 from quart_auth import AuthUser
+from sqlalchemy import update
 from src.database import Session, User
 
 
@@ -8,7 +9,7 @@ class UserClass(AuthUser):
         self._resolved = False
         self._id = None
         self._login = None
-        self._level = None
+        self._permissions = None
 
     async def _resolve(self):
         if self._resolved:
@@ -19,8 +20,34 @@ class UserClass(AuthUser):
             user_data = session.get(User, self.auth_id)
             self._id = user_data.id
             self._login = user_data.login
-            self._level = user_data.level
+            self._permissions = user_data.permissions
             self._resolved = True
+
+    async def add_permission(self, permission_level: int) -> None:
+        await self._resolve()
+        with Session() as session:
+            self._resolved = False
+            session.execute(
+                update(User)
+                .where(User.id == self._id["id"])
+                .values(permission_level=self._permissions | permission_level)
+            )
+
+    async def remove_permission(self, permission_level: int) -> None:
+        await self._resolve()
+        with Session() as session:
+            self._resolved = False
+            session.execute(
+                update(User)
+                .where(User.id == self._id["id"])
+                .values(permission_level=self._permissions & (~permission_level))
+            )
+    
+    async def has_permission(self, permission_level: int) -> bool:
+        await self._resolve()
+        if self._permissions is None: 
+            return False
+        return bool(self._permissions & permission_level)
 
     @property
     async def id(self):
@@ -33,6 +60,6 @@ class UserClass(AuthUser):
         return self._login
 
     @property
-    async def level(self):
+    async def permissions(self):
         await self._resolve()
-        return self._level
+        return self._permissions

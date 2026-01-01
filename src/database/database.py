@@ -16,7 +16,7 @@ class User(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     login: Mapped[str] = mapped_column(String(39))
-    level: Mapped[int] = mapped_column(default=1)
+    permissions: Mapped[int] = mapped_column(default=1)
 
 
 Base.metadata.create_all(engine)

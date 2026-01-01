@@ -45,7 +45,7 @@ if (width >= 1280) {
   ];
 }
 
-console.log(height, height - top * 2 - stdheight - 8);
+// console.log(height, height - top * 2 - stdheight - 8);
 
 
 WindowManager.t1 = new FTerminal(positions[0], sizes[0]);

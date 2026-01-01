@@ -31,6 +31,7 @@ export class Command {
   static kwparams = {};
   static flags = {};
   static strings = {};
+  static visible = true;
   constructor(params, term) {
     this.params = params;
     this.term = term;
@@ -66,7 +67,7 @@ export class HelpCommand extends Command {
   async exec() {
     var [term, params] = [this.term, this.params];
     if (!params.strings.command) {
-      this.write(`Available commands: ${commands.map((e) => {return e.name}).join(", ")}`);
+      this.write(`Available commands: ${commands.filter((e) => {return e.visible}).map((e) => {return e.name}).join(", ")}`);
       return Promise.resolve(null)
     }
     let command = null;
@@ -511,8 +512,40 @@ export class LogoutCommand extends Command {
   }
 }
 
+export class AdminListUsers extends Command {
+  static name = "list_users";
+  static visible = false;
+  constructor(params, term) {
+    super(params, term);
+  }
+  async exec() {
+    var [term, params] = [this.term, this.params];
+    return $.ajax({
+      url: 'admin/view_users',
+      type: 'GET',
+      statusCode: {
+        403: () => {
+          this.write(`-foxterm: list_users: you do not have permission to do this!\r\n`);
+        }
+      },
+      error: (request, status, error) => {
+        if ([403].some(s => s === request.status)) { return }
+        this.write(`-foxterm: An error occurred trying to fetch data! Please report this to taggie. This shouldn't happen.\r\nError type: ${status}\r\nError thrown: ${error}\r\n`);
+      },
+      success: (data) => {
+        const uuid = crypto.randomUUID();
+        WindowManager[uuid] = new MarkdownDisplay([24, 24], [412, 300]);
+        WindowManager[uuid].setText(data.join(""));
+        WindowManager[uuid].window.setTitle('admin - users');
+        WindowManager[uuid].window.self.trigger("mousedown");
+        WindowManager[$(".focus").closest('.window.ui-draggable').attr("window-id")].term.blur();
+      }
+    })
+  }
+}
+
 export const commands = [ 
   HelpCommand, TwitterCommand, GitHubCommand, EchoCommand, WhoAmICommand, 
   FoxCommand, ClearCommand, OpenCommand, LsCommand, CatCommand, CdCommand,
-  PwdCommand, LoginCommand, LogoutCommand
+  PwdCommand, LoginCommand, LogoutCommand, AdminListUsers
 ].sort((a, b) => {return a.name.localeCompare(b.name)});
