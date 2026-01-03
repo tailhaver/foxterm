@@ -42,10 +42,10 @@ class UserClass(AuthUser):
                 .where(User.id == self._id["id"])
                 .values(permission_level=self._permissions & (~permission_level))
             )
-    
+
     async def has_permission(self, permission_level: int) -> bool:
         await self._resolve()
-        if self._permissions is None: 
+        if self._permissions is None:
             return False
         return bool(self._permissions & permission_level)
 

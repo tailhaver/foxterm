@@ -17,6 +17,7 @@ blueprint = Blueprint(
 )
 logger = None
 
+
 @blueprint.before_app_serving
 def after():
     global logger
@@ -117,20 +118,28 @@ async def login_text():
 async def get_current_user():
     return {"login": await current_user.login}
 
+
 @blueprint.route("/admin/view_users", methods=["GET"])
 async def view_users():
-    if not await current_user.has_permission(Permissions.ADMIN | Permissions.VIEW_USERS):
-        return {"success": False, "error": "You do not have permission to run this command!"}, 403
+    if not await current_user.has_permission(
+        Permissions.ADMIN | Permissions.VIEW_USERS
+    ):
+        return {
+            "success": False,
+            "error": "You do not have permission to run this command!",
+        }, 403
 
-    _table = ['<table><thead><tr>']
-    _table.append('<th>ID</th><th>login</th><th>permissions</th>')
-    _table.append('</tr></thead>')
+    _table = ["<table><thead><tr>"]
+    _table.append("<th>ID</th><th>login</th><th>permissions</th>")
+    _table.append("</tr></thead>")
     with Session() as db_session:
         for user in db_session.query(User).all():
-            _table.extend([
-                '<tr>', 
-                *[f'<td>{i}</td>' for i in [user.id, user.login, user.permissions]],
-                '</tr>'
-            ])
-    _table.append('</table>')
+            _table.extend(
+                [
+                    "<tr>",
+                    *[f"<td>{i}</td>" for i in [user.id, user.login, user.permissions]],
+                    "</tr>",
+                ]
+            )
+    _table.append("</table>")
     return _table
