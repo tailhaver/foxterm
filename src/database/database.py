@@ -18,6 +18,9 @@ class User(Base):
     login: Mapped[str] = mapped_column(String(39))
     permissions: Mapped[int] = mapped_column(default=1)
 
+    def __iter__(self):
+        return iter([self.id, self.login, self.permissions])
+
 
 Base.metadata.create_all(engine)
 Session = sessionmaker(bind=engine)

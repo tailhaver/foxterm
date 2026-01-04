@@ -1,10 +1,11 @@
 // less evil file for containing my less evil command classes
-// taggie pyle, 2025
+// taggie pyle, 2026
 // https://github.com/tailhaver
 
-import {CommandError} from "./errors.js"
+import {CommandError} from "./errors.js";
 import MarkdownDisplay from "./markdown.js";
-import WindowManager from "./windowManager.js"
+import UserListDisplay from "./userList.js";
+import WindowManager from "./windowManager.js";
 
 function generateUsage(command) {
   if (!command instanceof Command) {
@@ -534,9 +535,7 @@ export class AdminListUsers extends Command {
       },
       success: (data) => {
         const uuid = crypto.randomUUID();
-        WindowManager[uuid] = new MarkdownDisplay([24, 24], [412, 300]);
-        WindowManager[uuid].setText(data.join(""));
-        WindowManager[uuid].window.setTitle('admin - users');
+        WindowManager[uuid] = new UserListDisplay();
         WindowManager[uuid].window.self.trigger("mousedown");
         WindowManager[$(".focus").closest('.window.ui-draggable').attr("window-id")].term.blur();
       }

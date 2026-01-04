@@ -118,13 +118,6 @@ p {
     background-color: #bc351f;   
 }
 
-table {
-    border-collapse: collapse;
-}
-
-th, td {
-    border: 1px solid #ddd;
-}
 
 @keyframes window-open {
   0% {

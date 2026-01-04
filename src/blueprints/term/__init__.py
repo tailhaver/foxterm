@@ -1,3 +1,4 @@
+from sqlalchemy import select, func
 from quart import Blueprint, current_app, request
 from quart_auth import current_user
 import os
@@ -129,17 +130,74 @@ async def view_users():
             "error": "You do not have permission to run this command!",
         }, 403
 
-    _table = ["<table><thead><tr>"]
-    _table.append("<th>ID</th><th>login</th><th>permissions</th>")
-    _table.append("</tr></thead>")
-    with Session() as db_session:
-        for user in db_session.query(User).all():
-            _table.extend(
-                [
-                    "<tr>",
-                    *[f"<td>{i}</td>" for i in [user.id, user.login, user.permissions]],
-                    "</tr>",
-                ]
+    return {"success": True}
+
+
+@blueprint.route("/admin/users-source", methods=["GET"])
+async def users_source():
+    if not await current_user.has_permission(
+        Permissions.ADMIN | Permissions.VIEW_USERS
+    ):
+        return {
+            "success": False,
+            "error": "You do not have permission to run this command!",
+        }, 403
+    draw = int(request.args.get("draw", 0))
+    start = int(request.args.get("start", 0))
+    limit = int(request.args.get("length", 10))
+    search_value = request.args.get("search[value]", "")
+    order_dir = request.args.get("order[0][dir]", "asc")
+    order_col = int(request.args.get("order[0][column]", "0"))
+    filters = True
+    match order_col:
+        case 0:
+            sort = User.id
+        case 1:
+            sort = User.login
+        case 2:
+            sort = User.permissions
+        case _:
+            sort = User.login
+            _col = order_col - 2
+            filters = User.permissions.bitwise_and(Permissions.sort()[_col])
+            if order_dir == "asc":
+                filters = filters == Permissions.sort()[_col]
+            else:
+                filters = filters != Permissions.sort()[_col]
+    match order_dir:
+        case "asc":
+            sort = sort.asc()
+        case _:
+            sort = sort.desc()
+    try:
+        with Session() as db_session:
+            data = [
+                [e.id, e.login, e.permissions]
+                for e in db_session.execute(
+                    select(User)
+                    .where(User.login.contains(search_value))
+                    .where(filters)
+                    .order_by(sort)
+                    .offset(start)
+                    .limit(limit)
+                )
+                .scalars()
+                .all()
+            ]
+            total_records = db_session.scalar(select(func.count()).select_from(User))
+            filtered_records = db_session.scalar(
+                select(func.count())
+                .select_from(User)
+                .where(User.login.contains(search_value))
             )
-    _table.append("</table>")
-    return _table
+    except Exception:
+        return {
+            "success": False,
+            "error": "An internal server error has occurred!",
+        }, 500
+    return {
+        "draw": draw,
+        "recordsTotal": total_records,
+        "recordsFiltered": filtered_records,
+        "data": data,
+    }
