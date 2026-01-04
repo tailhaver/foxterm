@@ -14,7 +14,7 @@ proudly made without ai assistance
 [![hack club](static/images/badges/hackclub.gif)](https://hack.club)
 [![3kh0.net](https://files.catbox.moe/ktu37j.png)](https://3kh0.net/)
 [![ivie.codes](static/images/badges/ivie.png)](https://ivie.codes/)
-[![lynn headpats.you](static/images/badges/lynn.png)](https://headpats.you)
+[![lynn.pt](static/images/badges/lynn.png)](https://lynn.pt)
 [![bunnyguy's sundial city](static/images/badges/bunnyguy.gif)](https://bunnyguy.foo)
 [![astracelestine](https://astracelestine.nekoweb.org/img/siteWidget.png =88x31)](https://astracelestine.nekoweb.org)
 [![jleuthardt](https://files.catbox.moe/grc5yk.png)](https://www.jleuthardt.com/)
