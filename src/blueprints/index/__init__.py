@@ -1,4 +1,5 @@
 from quart import Blueprint, render_template, send_from_directory
+
 from src.about import is_dev
 
 blueprint = Blueprint(

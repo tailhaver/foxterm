@@ -1,17 +1,19 @@
+from os import environ
+
 import aiohttp
 from quart import (
     Blueprint,
+    make_response,
+    redirect,
     render_template,
     request,
     session,
-    redirect,
     url_for,
-    make_response,
 )
-from quart_auth import AuthUser, login_user, logout_user, login_required, current_user
-from os import environ
+from quart_auth import AuthUser, current_user, login_required, login_user, logout_user
 from sqlalchemy import update
 
+import src.errors as errors
 from src.database import Session, User
 
 blueprint = Blueprint(
@@ -45,21 +47,28 @@ async def logout():
 @blueprint.route("/github/logout-term")
 async def logout_term():
     if not await current_user.is_authenticated:
-        return {"success": False}, 401
+        msg = "You are not logged in!"
+        raise errors.UnauthorizedError(msg)
     logout_user()
     return {"success": True}
 
 
 @blueprint.route("/github/callback", methods=["GET"])
 async def callback():
-    args = request.args
     next = session.get("next")
-    request_token = args.get("code")
+    request_token = request.args.get("code")
 
-    access_token = await get_access_token(request_token)
-    user_data = await get_user_data(access_token)
-    if user_data.get("id") is not None:
-        db_session = Session()
+    if request_token is None:
+        msg = "Bad request. Expected arguments: 'request_token'"
+        raise errors.RequestError(msg)
+
+    try:
+        access_token = await get_access_token(request_token)
+        user_data = await get_user_data(access_token)
+    except RuntimeError as e:
+        raise errors.ServerError(e)
+
+    with Session() as db_session:
         if db_session.query(User).filter(User.id == user_data["id"]).count() == 0:
             db_session.add(User(id=user_data["id"], login=user_data["login"]))
         elif (
@@ -72,25 +81,54 @@ async def callback():
             )
         db_session.commit()
         db_session.close()
+
     login_user(AuthUser(user_data["id"]))
-    if next:
+
+    if next is not None:
         return redirect(next)
+
     response = await make_response(redirect(url_for("github.loggedin")))
     response.set_cookie("logged_in", str(await current_user.is_authenticated))
     return response
 
 
-async def get_access_token(request_token):
+async def get_access_token(request_token: str) -> str:
     url = f"https://github.com/login/oauth/access_token?client_id={environ.get('GITHUB_ID')}&client_secret={environ.get('GITHUB_SECRET')}&code={request_token}"
     headers = {"accept": "application/json"}
-    async with aiohttp.ClientSession() as session:
-        async with session.post(url, headers=headers) as response:
-            return (await response.json())["access_token"]
+    async with (
+        aiohttp.ClientSession() as session,
+        await session.post(url, headers=headers) as response,
+    ):
+        if not response.ok:
+            msg = f"Unable to get access token from GitHub OAuth login flow! Received code HTTP {response.status}."
+            raise RuntimeError(msg)
+        try:
+            data: dict = await response.json()
+        except aiohttp.ContentTypeError:
+            msg = "GitHub OAuth login flow did not return a JSON object, but still returned HTTP 200. If you see this, you're fucked."
+            raise RuntimeError(msg)
+        if data.get("access_token") is None:
+            msg = "GitHub OAuth login flow did not return an access_token, but still returned HTTP 200. What. the fuck?"
+            raise RuntimeError(msg)
+
+        return data["access_token"]
 
 
-async def get_user_data(access_token):
+async def get_user_data(access_token: str) -> dict:
     url = "https://api.github.com/user"
     headers = {"Authorization": f"token {access_token}"}
-    async with aiohttp.ClientSession() as session:
-        async with session.get(url, headers=headers) as response:
-            return await response.json()
+    async with (
+        aiohttp.ClientSession() as session,
+        await session.get(url, headers=headers) as response,
+    ):
+        if not response.ok:
+            msg = f"Unable to get user data from the GitHub API! Received code HTTP {response.status}."
+            raise RuntimeError(msg)
+        try:
+            data: dict = await response.json()
+        except aiohttp.ContentTypeError:
+            msg = "GitHub API did not return a JSON object, but still returned HTTP 200. What the hell happened."
+            raise RuntimeError(msg)
+        if data.get("id") is None:
+            msg = "GitHub API did not return proper user data (missing 'id'), but still returned HTTP 200. Why. What."
+            raise RuntimeError(msg)

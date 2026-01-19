@@ -1,8 +1,11 @@
-from sqlalchemy import select, func
-from quart import Blueprint, current_app, request
-from quart_auth import current_user
 import os
 
+import anyio
+from quart import Blueprint, current_app, request
+from quart_auth import current_user
+from sqlalchemy import func, select
+
+import src.errors as errors
 from src.about import is_dev, version
 from src.auth import Permissions
 from src.database import Session, User
@@ -49,7 +52,7 @@ async def ls():
     return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}
 
 
-def _replace_data(line: str):
+def _replace_data(line: str) -> str:
     if "<{version}>" in line:
         line = line.replace("<{version}>", version)
     return line
@@ -65,14 +68,14 @@ async def cat():
         return "", 403
     home = "static/filesystem"
     cwd = cwd.replace("~", "").rstrip("/")
-    if path.lower() in links.keys():
+    if path.lower() in links:
         filepath = links[path.lower()]
     else:
         filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
     if not os.path.exists(filepath):
         return "", 404
-    with open(filepath, "r", encoding="utf-8") as fp:
-        lines = fp.readlines()
+    async with await anyio.open_file(filepath, encoding="utf-8") as fp:
+        lines = await fp.readlines()
     for line in list(filter(lambda e: "<{" in e and "}>" in e, lines)):
         index = lines.index(line)
         lines[index] = _replace_data(line)
@@ -88,7 +91,7 @@ async def cd():
         return "", 400
     if len(path) == 0:
         return "", 400
-    elif path == "~":
+    if path == "~":
         filepath = f"{home}"
     elif path[0] == "/":
         filepath = f"{home}{path}"
@@ -104,8 +107,8 @@ async def cd():
 async def login_text():
     commit_hash = ""
     if os.path.exists(".git/refs/heads/dev"):
-        with open(".git/refs/heads/dev") as fp:
-            commit_hash = fp.readline().strip("\n")
+        async with await anyio.open_file(".git/refs/heads/dev") as fp:
+            commit_hash = (await fp.readline()).strip("\n")
 
     return (
         f"foxterm {version}{' dev' if is_dev else ''}"
@@ -125,10 +128,7 @@ async def view_users():
     if not await current_user.has_permission(
         Permissions.ADMIN | Permissions.VIEW_USERS
     ):
-        return {
-            "success": False,
-            "error": "You do not have permission to run this command!",
-        }, 403
+        raise errors.PermissionError()
 
     return {"success": True}
 
@@ -138,10 +138,8 @@ async def users_source():
     if not await current_user.has_permission(
         Permissions.ADMIN | Permissions.VIEW_USERS
     ):
-        return {
-            "success": False,
-            "error": "You do not have permission to run this command!",
-        }, 403
+        raise errors.PermissionError()
+
     draw = int(request.args.get("draw", 0))
     start = int(request.args.get("start", 0))
     limit = int(request.args.get("length", 10))

@@ -1,0 +1,37 @@
+line-length = 88
+indent-width = 4
+
+[lint]
+select = [
+    "E", "W", "F",
+    "I",
+    "UP",
+    "C4",
+    "ICN",
+    "RET",
+    "SIM",
+    "TC",
+    "N",
+    "ERA",
+    "ANN",
+    "ASYNC",
+    "S",
+    "EM",
+    "INP",
+    "T20",
+    "ARG",
+    "PERF",
+    "FURB"
+]
+ignore = [
+    "ANN201", "E501" # fuck you i make my lines as long as i want
+]
+
+[lint.per-file-ignores]
+"__init__.py" = ["E402"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"
