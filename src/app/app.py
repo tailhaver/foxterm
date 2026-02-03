@@ -5,6 +5,7 @@ import re
 from quart import Quart
 from quart_auth import QuartAuth
 from quart_cors import cors
+from quart_schema import QuartSchema
 
 from src.auth import User
 from src.blueprints import blueprints
@@ -15,6 +16,7 @@ from .static import static
 
 def create_app(import_name: str) -> Quart:
     app = Quart(import_name)
+    QuartSchema(app)
     app.config.from_prefixed_env("QUART")
     app.asgi_app = ASGIMiddleware(app.asgi_app)
     if app.config["DEBUG"]:
