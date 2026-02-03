@@ -871,6 +871,7 @@ wheels = [
 ]
 
 [[package]]
+<<<<<<< HEAD
 name = "python-dotenv"
 version = "1.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -880,6 +881,8 @@ wheels = [
 ]
 
 [[package]]
+=======
+>>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }

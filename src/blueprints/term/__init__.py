@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 __all__ = ["blueprint"]
 from src.blueprints.term.blueprint import blueprint
 =======
@@ -204,3 +205,7 @@ async def users_source():
         "data": data,
     }
 >>>>>>> 487f1b1 (code overhaul with docs, hooks, config, custom error types, etc. you might get more details in the pr fuck if i know)
+=======
+__all__ = ["blueprint"]
+from src.blueprints.term.blueprint import blueprint
+>>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
