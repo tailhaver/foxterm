@@ -5,9 +5,10 @@ on:
 
 jobs:
     deploy:
+        name: deploy
         runs-on: ubuntu-latest
         steps:
-          - name: deploy
+          - name: Execute remote SSH commands using SSH key
             uses: appleboy/ssh-action@v1
             with:
                 host: ${{ secrets.HOST }}
