@@ -46,11 +46,10 @@ async def ls():
         searchpath = f"{home}{path}"
     else:
         searchpath = f"{cwd}/{path}"
-    if not os.path.exists(searchpath):
+    if not await anyio.Path(searchpath).exists():
         return "", 404
-    logger.info(os.path.abspath(searchpath))
     files = [*os.listdir(searchpath), *links.keys()]
-    return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}
+    return {k: {"isDir": await anyio.Path(f"{searchpath}/{k}").is_dir()} for k in files}
 
 
 def _replace_data(line: str) -> str:
@@ -73,7 +72,8 @@ async def cat():
         filepath = links[path.lower()]
     else:
         filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
-    if not os.path.exists(filepath):
+
+    if not await anyio.Path(filepath).exists():
         return "", 404
     async with await anyio.open_file(filepath, encoding="utf-8") as fp:
         lines = await fp.readlines()
@@ -99,7 +99,8 @@ async def cd():
     else:
         cwd = cwd.replace("~", "").rstrip("/")
         filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
-    if not os.path.isdir(filepath):
+
+    if not await anyio.Path(filepath).is_dir():
         return "", 403
     return "", 200
 
@@ -107,8 +108,9 @@ async def cd():
 @blueprint.route("/login-text", methods=["GET"])
 async def login_text():
     commit_hash = ""
-    if os.path.exists(".git/refs/heads/dev"):
-        async with await anyio.open_file(".git/refs/heads/dev") as fp:
+    path = anyio.Path(".git/refs/heads/dev")
+    if await path.exists():
+        async with await anyio.open_file(path) as fp:
             commit_hash = (await fp.readline()).strip("\n")
 
     return (
