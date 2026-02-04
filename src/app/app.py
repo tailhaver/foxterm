@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+from os import environ
 
 from quart import Quart
 from quart_auth import QuartAuth
@@ -22,7 +23,10 @@ def create_app(import_name: str) -> Quart:
     if app.config["DEBUG"]:
         app.logger.info("Loading Development configuration...")
     else:
-        app = cors(app, allow_origin=re.compile("https://*.yip.cat*"))
+        app = cors(
+            app,
+            allow_origin=re.compile(environ.get("CORS_REGEX", "https://*.yip.cat*")),
+        )
 
     auth_manager = QuartAuth(app)
     auth_manager.user_class = User
