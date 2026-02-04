@@ -143,7 +143,15 @@ async def login_text():
     commit_hash = ""
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
     path = anyio.Path(".git/refs/heads/dev")
+=======
+    if is_dev:
+        path = anyio.Path(".git/refs/heads/dev")
+    else:
+        path = anyio.Path(".git/refs/heads/main")
+
+>>>>>>> b8fad35 (feat(foxterm-backend): add commit hash to login message for all branches, not just dev)
     if await path.exists():
         async with await anyio.open_file(path) as fp:
 =======
