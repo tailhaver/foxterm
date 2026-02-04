@@ -14,7 +14,7 @@ from src.responses import SuccessResponse
 links = {"readme.md": "README.md"}
 
 blueprint = Blueprint(
-    "term",
+    "foxterm_backend",
     __name__,
     template_folder="templates",
     static_folder="static",
