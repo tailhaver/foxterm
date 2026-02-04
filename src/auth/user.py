@@ -1,17 +1,18 @@
 from quart_auth import AuthUser
 from sqlalchemy import update
+
 from src.database import Session, User
 
 
 class UserClass(AuthUser):
-    def __init__(self, auth_id):
+    def __init__(self, auth_id: str | None) -> None:
         super().__init__(auth_id)
         self._resolved = False
         self._id = None
         self._login = None
         self._permissions = None
 
-    async def _resolve(self):
+    async def _resolve(self) -> None:
         if self._resolved:
             return
         if not await self.is_authenticated:

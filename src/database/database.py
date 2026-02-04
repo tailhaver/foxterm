@@ -1,8 +1,8 @@
+from collections.abc import Iterator
 from os import environ
 
-from sqlalchemy import Integer, String, create_engine
-from sqlalchemy.orm import DeclarativeBase, sessionmaker
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import String, create_engine
+from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column, sessionmaker
 
 engine = create_engine(environ.get("DATABASE_PATH", "sqlite:///"))
 
@@ -18,7 +18,7 @@ class User(Base):
     login: Mapped[str] = mapped_column(String(39))
     permissions: Mapped[int] = mapped_column(default=1)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator:
         return iter([self.id, self.login, self.permissions])
 
 

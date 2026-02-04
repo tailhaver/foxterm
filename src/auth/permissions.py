@@ -6,7 +6,7 @@ class Permissions:
     UPLOAD_IMAGES = 16
 
     @staticmethod
-    def sort():
+    def sort() -> list:
         _current = [
             value
             for name, value in vars(Permissions).items()
