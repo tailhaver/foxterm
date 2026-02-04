@@ -14,7 +14,7 @@ from src.responses import SuccessResponse
 links = {"readme.md": "README.md"}
 
 blueprint = Blueprint(
-    "term",
+    "foxterm_backend",
     __name__,
     template_folder="templates",
     static_folder="static",
@@ -108,7 +108,11 @@ async def cd():
 @blueprint.route("/login-text", methods=["GET"])
 async def login_text():
     commit_hash = ""
-    path = anyio.Path(".git/refs/heads/dev")
+    if is_dev:
+        path = anyio.Path(".git/refs/heads/dev")
+    else:
+        path = anyio.Path(".git/refs/heads/main")
+
     if await path.exists():
         async with await anyio.open_file(path) as fp:
             commit_hash = (await fp.readline()).strip("\n")
