@@ -22,8 +22,12 @@ jobs:
         runs-on: ubuntu-latest
         steps:
           - name: deploy
+<<<<<<< HEAD
             uses: appleboy/ssh-action@master
 >>>>>>> d2136d9 (add test deploy workflow)
+=======
+            uses: appleboy/ssh-action@v1
+>>>>>>> ff702cf (fix test deploy)
             with:
                 host: ${{ secrets.HOST }}
                 username: ${{ secrets.USERNAME }}
