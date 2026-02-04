@@ -14,7 +14,12 @@ __all__ = ["ASGIMiddleware"]
 
 
 class ASGIMiddleware:
-    """Custom middleware to remove "dev." subdomain from HTTP requests"""
+    """
+    Custom middleware to remove "dev." subdomain from HTTP requests.
+
+    Entirely optional, but used to host a redirect from dev.site.tld to site.tld
+    through something like CloudFlare
+    """
 
     # this is my baby. she is deformed.
     # be nice to my baby.
