@@ -1,8 +1,8 @@
 from logging import getLogger
+from os import environ
 
 from dotenv import load_dotenv
 
-from src.about import is_dev
 from src.app import create_app
 
 load_dotenv()
@@ -11,9 +11,8 @@ app = create_app(__name__)
 
 if __name__ == "__main__":
     if app.config["DEBUG"]:
-        app.run(port=5000)
+        app.run(port=environ.get("PORT", 5000))
     else:
         getLogger("hypercorn.access").disabled = True
         getLogger("hypercorn.error").disabled = True
-        app.run(host="0.0.0.0", port=80 if not is_dev else 1080)  # noqa: S104
-        # TODO: fix S104 above and add port env var
+        app.run(host="127.0.0.1", port=environ.get("PORT", 80))
