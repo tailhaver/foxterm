@@ -1,26 +1,4 @@
-<<<<<<< HEAD
 name: Deploy to dev server (https://dev.yip.cat)
-=======
-<<<<<<<< HEAD:.github/workflows/deploy.yml
-<<<<<<< HEAD
-name: Deploy to main server (https://yip.cat)
-on:
-  push:
-    branches: [ main ]
-
-jobs:
-    deploy:
-        name: deploy
-        runs-on: ubuntu-latest
-        steps:
-          - name: Execute remote SSH commands using SSH key
-            uses: appleboy/ssh-action@v1
-=======
-name: test for deploy action
-========
-name: Deploy to dev server (https://dev.yip.cat)
->>>>>>>> 85e314a (modify deploy script to actually deploy on dev):.github/workflows/deploy-dev.yml
->>>>>>> 85e314a (modify deploy script to actually deploy on dev)
 on:
   push:
     branches: [ dev ]
@@ -30,45 +8,11 @@ jobs:
         name: deploy-dev
         runs-on: ubuntu-latest
         steps:
-<<<<<<< HEAD
           - name: Execute remote SSH commands using SSH key
             uses: appleboy/ssh-action@v1
-=======
-<<<<<<< HEAD
-          - name: deploy
-<<<<<<< HEAD
-            uses: appleboy/ssh-action@master
->>>>>>> d2136d9 (add test deploy workflow)
-=======
-=======
-          - name: Execute remote SSH commands using SSH key
->>>>>>> f26a8b9 (please.)
-            uses: appleboy/ssh-action@v1
->>>>>>> ff702cf (fix test deploy)
->>>>>>> 85e314a (modify deploy script to actually deploy on dev)
             with:
                 host: ${{ secrets.HOST }}
                 username: ${{ secrets.USERNAME }}
                 key: ${{ secrets.KEY }}
                 port: ${{ secrets.PORT }}
-<<<<<<< HEAD
-<<<<<<< HEAD
                 script: ./deploy-dev.sh
-=======
-<<<<<<<< HEAD:.github/workflows/deploy.yml
-<<<<<<< HEAD
-<<<<<<< HEAD
-                script: ./deploy.sh
-=======
-                script: whoami
->>>>>>> d2136d9 (add test deploy workflow)
-=======
-                script: ls
->>>>>>> 971f76f (what)
-========
-                script: deploy-dev.sh
->>>>>>>> 85e314a (modify deploy script to actually deploy on dev):.github/workflows/deploy-dev.yml
->>>>>>> 85e314a (modify deploy script to actually deploy on dev)
-=======
-                script: ./deploy-dev.sh
->>>>>>> b1f3a9d (i am an idiot)

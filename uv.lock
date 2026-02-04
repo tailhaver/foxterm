@@ -871,10 +871,6 @@ wheels = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> a5eb571 (feat: remove config classes, automatically load .env)
 name = "python-dotenv"
 version = "1.2.1"
 source = { registry = "https://pypi.org/simple" }
@@ -884,11 +880,6 @@ wheels = [
 ]
 
 [[package]]
-<<<<<<< HEAD
-=======
->>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
-=======
->>>>>>> a5eb571 (feat: remove config classes, automatically load .env)
 name = "pyyaml"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }

@@ -46,25 +46,10 @@ async def ls():
         searchpath = f"{home}{path}"
     else:
         searchpath = f"{cwd}/{path}"
-<<<<<<< HEAD
-<<<<<<< HEAD
     if not await anyio.Path(searchpath).exists():
         return "", 404
     files = [*os.listdir(searchpath), *links.keys()]
     return {k: {"isDir": await anyio.Path(f"{searchpath}/{k}").is_dir()} for k in files}
-=======
-    if not os.path.exists(searchpath):
-=======
-    if not await anyio.Path(searchpath).exists():
->>>>>>> ce4a28c (perf(foxterm-backend): change blocking `os.path` calls to async `anyio.Path` calls)
-        return "", 404
-    files = [*os.listdir(searchpath), *links.keys()]
-<<<<<<< HEAD
-    return {k: {"isDir": os.path.isdir(f"{searchpath}/{k}")} for k in files}
->>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
-=======
-    return {k: {"isDir": await anyio.Path(f"{searchpath}/{k}").is_dir()} for k in files}
->>>>>>> ce4a28c (perf(foxterm-backend): change blocking `os.path` calls to async `anyio.Path` calls)
 
 
 def _replace_data(line: str) -> str:
@@ -87,17 +72,8 @@ async def cat():
         filepath = links[path.lower()]
     else:
         filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
-<<<<<<< HEAD
-<<<<<<< HEAD
 
     if not await anyio.Path(filepath).exists():
-=======
-    if not os.path.exists(filepath):
->>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
-=======
-
-    if not await anyio.Path(filepath).exists():
->>>>>>> ce4a28c (perf(foxterm-backend): change blocking `os.path` calls to async `anyio.Path` calls)
         return "", 404
     async with await anyio.open_file(filepath, encoding="utf-8") as fp:
         lines = await fp.readlines()
@@ -123,17 +99,8 @@ async def cd():
     else:
         cwd = cwd.replace("~", "").rstrip("/")
         filepath = f"{home}/{cwd + '/' if cwd else ''}{path}"
-<<<<<<< HEAD
-<<<<<<< HEAD
 
     if not await anyio.Path(filepath).is_dir():
-=======
-    if not os.path.isdir(filepath):
->>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
-=======
-
-    if not await anyio.Path(filepath).is_dir():
->>>>>>> ce4a28c (perf(foxterm-backend): change blocking `os.path` calls to async `anyio.Path` calls)
         return "", 403
     return "", 200
 
@@ -141,28 +108,13 @@ async def cd():
 @blueprint.route("/login-text", methods=["GET"])
 async def login_text():
     commit_hash = ""
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-    path = anyio.Path(".git/refs/heads/dev")
-=======
     if is_dev:
         path = anyio.Path(".git/refs/heads/dev")
     else:
         path = anyio.Path(".git/refs/heads/main")
 
->>>>>>> b8fad35 (feat(foxterm-backend): add commit hash to login message for all branches, not just dev)
     if await path.exists():
         async with await anyio.open_file(path) as fp:
-=======
-    if os.path.exists(".git/refs/heads/dev"):
-        async with await anyio.open_file(".git/refs/heads/dev") as fp:
->>>>>>> 15f0347 (add responses/ folder, move blueprints into dedicated blueprint.py file)
-=======
-    path = anyio.Path(".git/refs/heads/dev")
-    if await path.exists():
-        async with await anyio.open_file(path) as fp:
->>>>>>> ce4a28c (perf(foxterm-backend): change blocking `os.path` calls to async `anyio.Path` calls)
             commit_hash = (await fp.readline()).strip("\n")
 
     return (
