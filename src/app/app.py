@@ -20,12 +20,9 @@ def create_app(import_name: str) -> Quart:
     app.config.from_prefixed_env("QUART")
     app.asgi_app = ASGIMiddleware(app.asgi_app)
     if app.config["DEBUG"]:
-        config_mode = "Development"
         app.logger.info("Loading Development configuration...")
     else:
-        config_mode = "Production"
         app = cors(app, allow_origin=re.compile("https://*.yip.cat*"))
-    app.config.from_object(f"src.config.{config_mode}")
 
     auth_manager = QuartAuth(app)
     auth_manager.user_class = User

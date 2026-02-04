@@ -1,9 +1,11 @@
-from __future__ import annotations
-
 from logging import getLogger
+
+from dotenv import load_dotenv
 
 from src.about import is_dev
 from src.app import create_app
+
+load_dotenv()
 
 app = create_app(__name__)
 
