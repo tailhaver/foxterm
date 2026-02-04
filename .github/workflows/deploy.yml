@@ -4,8 +4,8 @@ on:
     branches: [ main ]
 
 jobs:
-    deploy-dev:
-        name: deploy-dev
+    deploy:
+        name: deploy
         runs-on: ubuntu-latest
         steps:
           - name: Execute remote SSH commands using SSH key
