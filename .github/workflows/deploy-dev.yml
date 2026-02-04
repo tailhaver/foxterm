@@ -52,6 +52,7 @@ jobs:
                 key: ${{ secrets.KEY }}
                 port: ${{ secrets.PORT }}
 <<<<<<< HEAD
+<<<<<<< HEAD
                 script: ./deploy-dev.sh
 =======
 <<<<<<<< HEAD:.github/workflows/deploy.yml
@@ -68,3 +69,6 @@ jobs:
                 script: deploy-dev.sh
 >>>>>>>> 85e314a (modify deploy script to actually deploy on dev):.github/workflows/deploy-dev.yml
 >>>>>>> 85e314a (modify deploy script to actually deploy on dev)
+=======
+                script: ./deploy-dev.sh
+>>>>>>> b1f3a9d (i am an idiot)
