@@ -19,13 +19,18 @@ on:
 
 jobs:
     deploy:
+        name: deploy
         runs-on: ubuntu-latest
         steps:
+<<<<<<< HEAD
           - name: deploy
 <<<<<<< HEAD
             uses: appleboy/ssh-action@master
 >>>>>>> d2136d9 (add test deploy workflow)
 =======
+=======
+          - name: Execute remote SSH commands using SSH key
+>>>>>>> f26a8b9 (please.)
             uses: appleboy/ssh-action@v1
 >>>>>>> ff702cf (fix test deploy)
             with:
