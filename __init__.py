@@ -3,6 +3,12 @@ from os import environ
 
 from dotenv import load_dotenv
 
+<<<<<<< HEAD
+=======
+from dotenv import load_dotenv
+
+from src.about import is_dev
+>>>>>>> a5eb571 (feat: remove config classes, automatically load .env)
 from src.app import create_app
 
 load_dotenv()
