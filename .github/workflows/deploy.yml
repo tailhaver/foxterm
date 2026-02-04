@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 name: Deploy to main server (https://yip.cat)
 on:
   push:
@@ -10,9 +11,26 @@ jobs:
         steps:
           - name: Execute remote SSH commands using SSH key
             uses: appleboy/ssh-action@v1
+=======
+name: test for deploy action
+on:
+  push:
+    branches: [ dev ]
+
+jobs:
+    deploy:
+        runs-on: ubuntu-latest
+        steps:
+          - name: deploy
+            uses: appleboy/ssh-action@master
+>>>>>>> d2136d9 (add test deploy workflow)
             with:
                 host: ${{ secrets.HOST }}
                 username: ${{ secrets.USERNAME }}
                 key: ${{ secrets.KEY }}
                 port: ${{ secrets.PORT }}
+<<<<<<< HEAD
                 script: ./deploy.sh
+=======
+                script: whoami
+>>>>>>> d2136d9 (add test deploy workflow)
