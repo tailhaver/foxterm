@@ -133,3 +133,5 @@ async def get_user_data(access_token: str) -> dict:
         if data.get("id") is None:
             msg = "GitHub API did not return proper user data (missing 'id'), but still returned HTTP 200. Why. What."
             raise RuntimeError(msg)
+
+        return data
