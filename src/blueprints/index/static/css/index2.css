@@ -1,0 +1,47 @@
+@font-face {
+    font-family: "Caskaydia Mono";
+    src: url('../fonts/CaskaydiaMonoNF-Subset.woff2');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
+}
+
+* {
+    box-sizing: border-box;
+    font-family: "Caskaydia Mono", 'Consolas', 'Courier New', monospace;
+    color: #eaeaea;
+}
+
+html, body {
+    margin: 0;
+    background-color: rgb(23, 20, 27);
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+main {
+    --top: max(32px, calc(calc(100vh - calc(428px * 2) - 8px) / 2));
+    --left: max(54px, calc(calc(100vw - calc(386px * 3)) / 2));
+    display: grid;
+    padding: var(--top) var(--left);
+    grid-template-columns: 386px 1fr;
+    grid-template-rows: 428px 1fr;
+    height: 100vh;
+    grid-gap: 8px;
+}
+
+div#a {
+    grid-area: 1 / 1 / 2 / 2;
+    background-color: red;
+}
+
+div#b {
+    grid-area: 2 / 1 / 3 / 2;
+    background-color: orange;
+}
+
+div#c {
+    grid-area: 1 / 2 / 3 / 3;
+    background-color: yellow;
+}
